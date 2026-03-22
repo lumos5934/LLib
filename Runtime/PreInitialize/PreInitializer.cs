@@ -8,9 +8,8 @@ namespace LumosLib
 {
     public static class PreInitializer
     {
-        private static int _curInitCount;
-        private static int _maxInitCount;
-        private static int _failCount;
+        private static int _curCount;
+        private static int _maxCount;
 
         private static bool _isInitialized;
 
@@ -18,7 +17,7 @@ namespace LumosLib
         
         public static bool IsInitialized => _isInitialized;
         public static float InitProgress =>
-            _maxInitCount == 0 ? 1f : (float)_curInitCount / _maxInitCount;
+            _maxCount == 0 ? 1f : (float)_curCount / _maxCount;
 
         
 
@@ -74,12 +73,14 @@ namespace LumosLib
                 .OfType<IPreInitializable>()
                 .ToList();
             
-            _maxInitCount = allInitializable.Count;
+            _maxCount = allInitializable.Count;
             
             var taskList = new List<UniTask<bool>>();
             
             foreach (var initializable in allInitializable)
             {
+                _curCount++;
+                
                 var task = InitializeTarget(context, initializable);
                 taskList.Add(task);
                 
@@ -109,17 +110,14 @@ namespace LumosLib
             try
             {
                 bool success = await target.InitAsync(ctx);
-
                 float elapsed = (Time.realtimeSinceStartup - startTime) * 1000f;
 
                 if (success)
                 {
-                    _curInitCount++;
-                    DebugUtil.Log(targetName, $"INIT SUCCESS ({elapsed:F2} ms) [{_curInitCount}/{_maxInitCount}]");
+                    DebugUtil.Log(targetName, $"INIT SUCCESS ({elapsed:F2} ms) [{_curCount}/{_maxCount}]");
                 }
                 else
                 {
-                    _failCount++;
                     DebugUtil.LogError(targetName, $"INIT FAIL");
                 }
 
@@ -127,7 +125,6 @@ namespace LumosLib
             }
             catch (System.Exception e)
             {
-                _failCount++;
                 DebugUtil.LogError(targetName, $"INIT EXCEPTION: {e.Message}");
                 return false;
             }
