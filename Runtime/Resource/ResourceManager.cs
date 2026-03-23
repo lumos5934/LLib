@@ -19,7 +19,6 @@ namespace LumosLib
         private readonly Dictionary<string, Object> _allResources = new();
         private readonly Dictionary<string, List<ResourceGroup>> _allGroups = new();
 
-        public Type RegisterType => typeof(IResourceManager);
 
         
         private void Awake()

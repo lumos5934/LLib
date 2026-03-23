@@ -24,9 +24,6 @@ namespace LumosLib
         private readonly Dictionary<int, AudioPlayer> _bgmPlayers = new();
         private readonly HashSet<AudioPlayer> _activePlayers = new();
 
-        
-        public Type RegisterType => typeof(IAudioManager);
-        
 
         private void Awake()
         {

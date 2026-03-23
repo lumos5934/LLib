@@ -18,7 +18,6 @@ namespace LumosLib
         private Vector2 _worldPosition;
 
         
-        public Type RegisterType => typeof(IPointerManager);
         public bool IsPressed { get; private set; }
         public Vector2 ScreenPosition { get; private set; }
         public Vector2 WorldPosition { get; private set; }

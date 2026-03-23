@@ -11,8 +11,6 @@ namespace LumosLib
         protected List<UIPopup> _openedPopups = new();
         protected Camera _camera;
         
-        public Type RegisterType => typeof(IPopupManager);
-        
         
         public async UniTask<bool> InitAsync(PreInitContext ctx)
         {

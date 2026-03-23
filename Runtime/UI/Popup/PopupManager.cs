@@ -26,9 +26,16 @@ namespace LumosLib
 
         protected override async UniTask<bool> OnInitAsync(PreInitContext ctx)
         {
-            _resourceMgr = await ctx.GetAsync<IResourceManager>();
-            if (_resourceMgr == null)
+            _resourceMgr = Services.Get<IResourceManager>();
+            
+            var resourceInit = _resourceMgr as IPreInitializable;
+            if (resourceInit == null)
                 return false;
+            
+            var result = await ctx.GetAsync(resourceInit);
+            if (result == null) 
+                return false;
+            
 
             _camera = GetComponentInChildren<Camera>();
             if (_camera == null)

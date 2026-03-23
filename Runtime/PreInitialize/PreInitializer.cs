@@ -8,17 +8,16 @@ namespace LumosLib
 {
     public static class PreInitializer
     {
-        private static int _curCount;
         private static int _maxCount;
-
+        private static int _successCount;
+        private static int _failCount;
         private static bool _isInitialized;
-
         private static UniTaskCompletionSource _initBarrier;
-        
+
+
         public static bool IsInitialized => _isInitialized;
         public static float InitProgress =>
-            _maxCount == 0 ? 1f : (float)_curCount / _maxCount;
-
+            _maxCount == 0 ? 1f : (float)(_successCount + _failCount) / _maxCount;
         
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
@@ -26,6 +25,7 @@ namespace LumosLib
         {
             _initBarrier = new UniTaskCompletionSource();
         }
+        
         
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Init()
@@ -41,6 +41,7 @@ namespace LumosLib
             Initialize(libSettings).Forget();
         }
         
+        
         public static UniTask WaitInitAsync()
         {
             if (_isInitialized)
@@ -49,25 +50,16 @@ namespace LumosLib
             return _initBarrier.Task;
         }
 
+        
         private static async UniTask Initialize(LumosLibSettings libSettings)
         {
-            DebugUtil.Log("", "------ INITIALIZE START");
-
-            var totalSW = System.Diagnostics.Stopwatch.StartNew();
-            var context = new PreInitContext();
-            var preloadSW = System.Diagnostics.Stopwatch.StartNew();
+            var initSW = System.Diagnostics.Stopwatch.StartNew();
             
-            foreach (var prefab in libSettings.PreloadObjects)
-            {
-                if (prefab == null)
-                    continue;
-
-                var obj = Object.Instantiate(prefab);
-                obj.name = prefab.name;
-            }
             
-            DebugUtil.Log("", $"PRELOAD FINISH ({preloadSW.ElapsedMilliseconds:F2} ms)");
+            Preload(libSettings);
+            DebugUtil.Log("", $"------ PRELOAD FINISH ({initSW.ElapsedMilliseconds:F2} ms)");
 
+            
             
             var allInitializable = Object.FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None)
                 .OfType<IPreInitializable>()
@@ -75,23 +67,34 @@ namespace LumosLib
             
             _maxCount = allInitializable.Count;
             
+            initSW = System.Diagnostics.Stopwatch.StartNew();
+            
+            DebugUtil.Log("", $"------ INITIALIZE START (TOTAL : {_maxCount})");
+            
+            
+            var context = new PreInitContext();
+            
+            foreach (var initializable in allInitializable)
+            {
+                context.Register(initializable);
+            }
+            
+            
             var taskList = new List<UniTask<bool>>();
             
             foreach (var initializable in allInitializable)
             {
-                _curCount++;
-                
-                var task = InitializeTarget(context, initializable);
+                var task = InitializeTarget(context, initializable, initSW);
                 taskList.Add(task);
-                
-                context.Register(initializable, task);
             }
+            
             
             await UniTask.WhenAll(taskList);
             
-            DebugUtil.Log("", $"------ INITIALIZE FINISH ({totalSW.ElapsedMilliseconds:F2} ms)");
-
             FinishInit();
+            context.Clear();
+            
+            DebugUtil.Log("", $"------ INITIALIZE FINISH (SUCCESS : {_successCount} , FAIL : {_failCount})");
         }
         
         
@@ -102,31 +105,54 @@ namespace LumosLib
         }
         
         
-        private static async UniTask<bool> InitializeTarget(PreInitContext ctx, IPreInitializable target)
+        private static async UniTask<bool> InitializeTarget(PreInitContext ctx, IPreInitializable target, System.Diagnostics.Stopwatch initSW)
         {
+            
             string targetName = target.GetType().Name;
-            float startTime = Time.realtimeSinceStartup;
 
             try
             {
                 bool success = await target.InitAsync(ctx);
-                float elapsed = (Time.realtimeSinceStartup - startTime) * 1000f;
+                
+                ctx.SetTaskResult(target.GetType(), success);
+
+                float elapsed = initSW.ElapsedMilliseconds;
 
                 if (success)
                 {
-                    DebugUtil.Log(targetName, $"INIT SUCCESS ({elapsed:F2} ms) [{_curCount}/{_maxCount}]");
+                    _successCount++;
+                    DebugUtil.Log(targetName, $"INIT SUCCESS ({elapsed:F2} ms)");
                 }
                 else
                 {
-                    DebugUtil.LogError(targetName, $"INIT FAIL");
+                    _failCount++;
+                    DebugUtil.LogError(targetName, $"INIT FAIL ({elapsed:F2} ms)");
                 }
-
+                
                 return success;
             }
             catch (System.Exception e)
             {
+                _failCount++;
+                
+                ctx.SetTaskResult(target.GetType(), false);
+                
                 DebugUtil.LogError(targetName, $"INIT EXCEPTION: {e.Message}");
+                
                 return false;
+            }
+        }
+
+        
+        private static void Preload(LumosLibSettings settings)
+        {
+            foreach (var prefab in settings.PreloadObjects)
+            {
+                if (prefab == null)
+                    continue;
+
+                var obj = Object.Instantiate(prefab);
+                obj.name = prefab.name;
             }
         }
     }
