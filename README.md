@@ -23,7 +23,7 @@
 ## ℹ️기능
 
 * [ Audio ](#Audio)
-* [ Event ](https://www.notion.so/Event-2df3966a742c801ebe59ddbca58e32e3?source=copy_link)
+* [ Event ](#Event)
 * [ FSM ](https://www.notion.so/FSM-2df3966a742c8021b453c80bab800d3f?source=copy_link)
 * [ Global ](https://www.notion.so/Global-2df3966a742c802d9ca9ffb15b215c58?source=copy_link)
 * [ Input ](https://www.notion.so/Input-2df3966a742c80829b9fd7302ad19cdb?source=copy_link)
@@ -42,36 +42,195 @@
 
 ### Audio
 
-
 **AudioManager** <br>
-`Create -> [LumosLib] -> Prefabs -> Manager -> Audio` <br>
-* **Mixer** : 사용할 오디오 믹서
-* **AudioPlayer** : 사용할 Audio Player 프리팹
-* **SetVolume** : 사용되는 믹서 볼륨 조절
-* **BGM** : 타입별로 사용되는 배경음 관리 ( 전투, 환경 ...)
-* **SFX** : 단발성 추적이 필요없는 효과음 관리
+`Create / [LumosLib] / Prefabs / Manager / Audio`
+
+오디오 통합 관리자 <br>
+
+<table>
+  <tr>
+    <td><b>Mixer</b></td>
+    <td>사용할 오디오 믹서</td>
+  </tr>
+  <tr>
+    <td><b>AudioPlayer</b></td>
+    <td>재생에 사용되는 프리팹</td>
+  </tr>
+   <tr>
+    <td><b>SetVolume()</b></td>
+    <td>사용되는 믹서 볼륨 조절</td>
+  </tr>
+   <tr>
+    <td><b>BGM</b></td>
+    <td>`bgmType`별 독립 채널 관리 (전투, 환경음 등)</td>
+  </tr>
+   <tr>
+    <td><b>SFX</b></td>
+    <td>추적이 필요 없는 단발성 효과음</td>
+  </tr>
+</table>
+
+
 
 <br>
 
 **AudioPlayer** <br>
-`Create -> [LumosLib] -> Prefabs -> Audio Player` <br>
+`Create / [LumosLib] / Prefabs / Audio Player`
 
 매니저를 통해 관리되는 오디오 플레이어
+
 
 <br>
 
 **Sound Asset** <br>
-`Create -> [LumosLib] -> Scriptable Objects -> SoundAsset` <br>
+`Create / [LumosLib] / Scriptable Objects / SoundAsset`
 
 사용되는 사운드 보관 SO
 
-* **MixerGroup** : 사용될 믹서그룹
-* **Clip** : 사용될 오디오 클립
-* **VolumeMult** : 볼륨 가중치
-* **IsLoop** : 반복 여부
+<table>
+  <tr>
+    <td><b>MixerGroup</b></td>
+    <td>사용될 믹서그룹</td>
+  </tr>
+  <tr>
+    <td><b>Clip</b></td>
+    <td>사용될 오디오 클립</td>
+  </tr>
+   <tr>
+    <td><b>VolumeMult</b></td>
+    <td>볼륨 가중치</td>
+  </tr>
+   <tr>
+    <td><b>IsLoop</b></td>
+    <td>반복 여부</td>
+</table>
+
+<br>
 
 [🎬튜토리얼](https://youtu.be/h66xEmaztBA?si=_H5PhyZfN-9ZT5Gh)
 
+
+<br>
+<br>
+
+---
+
+### EventBus
+객체 간의 결합도를 낮추기 위한 전역 이벤트 시스템, 반드시 적절히 Unsubscribe를 호출하여 메모리 누수 방지
+
+<table>
+  <tr>
+    <td><b>Subscribe()<b></td>
+    <td>이벤트 등록</td>
+  </tr>
+  <tr>
+    <td><b>Unsubscribe()<b></td>
+    <td>이벤트 해제</td>
+  </tr>
+  <tr>
+    <td><b>Publish()<b></td>
+    <td>이벤트 발행</td>
+  </tr>
+</table>
+
+```csharp
+EventBus<LevelUpEvent>.Subscribe(OnLevelUp);
+EventBus<LevelUpEvent>.Publish(new LevelUpEvent { Level = 10 });
+```
+
+<br>
+<br>
+
+---
+
+### FSM
+
+**StateMachine**
+
+<table>
+  <tr>
+    <td><b>CurState<b></td>
+    <td>현재 상태</td>
+  </tr>
+  <tr>
+    <td><b>OnExit<b></td>
+    <td>상태 Exit 콜백</td>
+  </tr>
+  <tr>
+    <td><b>OnEnter<b></td>
+    <td>상태 Enter 콜백</td>
+  </tr>
+  <tr>
+    <td><b>Register(IState state)<b></td>
+    <td>상태 등록</td>
+  </tr>
+  <tr>
+    <td><b>Update()<b></td>
+    <td>현재 상태 업데이트</td>
+  </tr>
+  <tr>
+    <td><b>ChangeState()<b></td>
+    <td>상태 변경</td>
+  </tr>
+</table>
+
+```csharp
+public class PlayerController : MonoBehaviour
+{
+    private StateMachine _stateMachine = new StateMachine();
+
+    private void Start()
+    {
+        // 1. 상태 등록 (Register)
+        _stateMachine.Register(new IdleState());
+        _stateMachine.Register(new MoveState());
+
+        // 2. 초기 상태 설정
+        _stateMachine.ChangeState<IdleState>();
+    }
+
+    private void Update()
+    {
+        // 3. 현재 상태 업데이트 실행
+        _stateMachine.Update();
+
+        // 예시: 입력에 따른 상태 변경
+        if (Input.GetKeyDown(KeyCode.W))
+        {
+            _stateMachine.ChangeState<MoveState>();
+        }
+    }
+}
+```
+
+<br>
+
+**IState**
+
+상태머신이 관리할 상태, 상속을 통한 상태 구현
+
+```csharp
+public class IdleState : IState
+{
+    public void OnEnter() => Debug.Log("대기 상태 진입");
+    public void Update() { /* 대기 로직 */ }
+    public void OnExit() => Debug.Log("대기 상태 종료");
+}
+
+public class MoveState : IState
+{
+    public void OnEnter() => Debug.Log("이동 상태 진입");
+    public void Update() { /* 이동 로직 */ }
+    public void OnExit() => Debug.Log("이동 상태 종료");
+}
+
+```
+
+
+<br>
+<br>
+
+---
 
 ## ℹ️사전 작업
 
