@@ -19,6 +19,7 @@
 * [ lumos-BGDatabase ](https://github.com/lumos5934/lumos-BGDatabase)
 
 <br>
+<br>
 
 ## 🔧기능
 
@@ -37,79 +38,105 @@
 
 <br>
 <br>
-
+<br>
 
 ---
 
-### Audio
+### PreInitialize
 
-**AudioManager** <br>
-`Create / [LumosLib] / Prefabs / Manager / Audio`
+**PreInitializer** 
 
-오디오 통합 관리자 <br>
-
-<table>
-  <tr>
-    <td><b>Mixer</b></td>
-    <td>사용할 오디오 믹서</td>
-  </tr>
-  <tr>
-    <td><b>AudioPlayer</b></td>
-    <td>재생에 사용되는 프리팹</td>
-  </tr>
-   <tr>
-    <td><b>SetVolume()</b></td>
-    <td>사용되는 믹서 볼륨 조절</td>
-  </tr>
-   <tr>
-    <td><b>BGM</b></td>
-    <td>`bgmType`별 독립 채널 관리 (전투, 환경음 등)</td>
-  </tr>
-   <tr>
-    <td><b>SFX</b></td>
-    <td>추적이 필요 없는 단발성 효과음</td>
-  </tr>
-</table>
-
-
+<img width="472" height="270" alt="image" src="https://github.com/user-attachments/assets/f53b06e9-a2cf-4df8-ab0a-16bab73839d6" />
 
 <br>
 
-**AudioPlayer** <br>
-`Create / [LumosLib] / Prefabs / Audio Player`
-
-매니저를 통해 관리되는 오디오 플레이어
-
+플레이시 `Preload Objects` 들을 생성하고 `Use Pre Initialize` 체크 시 사전 초기화를 진행. `[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]` 시점에 병렬식 비동기로 진행되므로 씬에 미리 배치되어있던 오브젝트의 Awake등에서 호출 주의
 
 <br>
 
-**Sound Asset** <br>
-`Create / [LumosLib] / Scriptable Objects / SoundAsset`
-
-사용되는 사운드 보관 SO
-
 <table>
   <tr>
-    <td><b>MixerGroup</b></td>
-    <td>사용될 믹서그룹</td>
+    <td><b>IsInitialized<b></td>
+    <td>초기화가 완료되었는지 확인</td>
   </tr>
   <tr>
-    <td><b>Clip</b></td>
-    <td>사용될 오디오 클립</td>
+    <td><b>InitProgress<b></td>
+    <td>[완료 목록 개수 / 총 목록 개수] 의 진행률</td>
   </tr>
-   <tr>
-    <td><b>VolumeMult</b></td>
-    <td>볼륨 가중치</td>
+  <tr>
+    <td><b>WaitInitAsync()</td>
+    <td>외부에서 해당 초기화가 완료될때까지 비동기로 기다리는 UniTask</td></td>
   </tr>
-   <tr>
-    <td><b>IsLoop</b></td>
-    <td>반복 여부</td>
 </table>
 
 <br>
 
-[🎬튜토리얼](https://youtu.be/h66xEmaztBA?si=_H5PhyZfN-9ZT5Gh)
+```cs
 
+public async void Awake()
+{
+    // 사전 초기화가 필요한 클래스를 참조할 경우 대기
+    await PreInitializer.WaitInitAsync();
+
+    //이후 참조
+}
+
+```
+
+<br>
+
+**IPreInitializable**
+
+사전 초기화를 진행 할 대상. `UniTask<bool> InitAsync(PreInitContext ctx);` 매서드를 통해 초기화를 진행하고 결과를 bool 로 리턴. 만약 초기화중 참조해야 할 대상 또한 초기화 대상이라면 `context` 의 `GetAsync()` 를 호출하여 대상의 초기화를 기다린 후 진행 가능. 
+
+<br>
+
+```cs
+
+ protected override async UniTask<bool> OnInitAsync(PreInitContext ctx)
+{
+    _resourceMgr = Services.Get<IResourceManager>();
+    
+    var resourceInit = _resourceMgr as IPreInitializable;
+    if (resourceInit == null)
+        return false;
+    
+    var result = await ctx.GetAsync(resourceInit);
+    if (result == null) 
+        return false;
+}
+
+```
+
+<br>
+<br>
+
+---
+
+### Services
+
+간편한 참조와 의존성 주입을 위한 서비스 로케이터, 기본적으로 싱글톤 적 성격을 띄고 있으므로 Monobehaviour 객체는 등록시 DontDestroyOnLoad 처리되며 중복된 객체가 등록되거나 등록 해제시 파괴됨.
+
+<table>
+  <tr>
+    <td><b>Register(T service)<b></td>
+    <td>서비스 등록</td>
+  </tr>
+  <tr>
+    <td><b>Unregister()<b></td>
+    <td>서비스 등록 해제</td>
+  </tr>
+  <tr>
+    <td><b>Get<b></td>
+    <td>서비스 조회</td>
+  </tr>
+</table>
+
+
+```csharp
+Services.Register<IGameSettings>(this);
+IGameSettings Settings => Services.Get<IGameSettings>();
+```
 
 <br>
 <br>
@@ -138,6 +165,75 @@
 EventBus<LevelUpEvent>.Subscribe(OnLevelUp);
 EventBus<LevelUpEvent>.Publish(new LevelUpEvent { Level = 10 });
 ```
+
+<br>
+<br>
+
+---
+
+### TestTool
+`Window / [LumosLib] / TestTool` 
+
+<img width="421" height="540" alt="image" src="https://github.com/user-attachments/assets/b423db3b-d9c3-4ead-afe8-986c903aa9a5" />
+
+<br>
+
+Editor Window 를 활용하여 프로젝트에서 여러가지 기능 테스트 상황을 한 곳으로 모으고 시각적으로 용이하도록 제작된 툴. Settings 을 통해 여러가지 커스터 마이징이 가능함.
+
+<br>
+<br>
+
+**ITestToolElement**
+
+실제 내용이 그려질 인터페이스, 상속받아 OnGUI 부분에 에디터 레이아웃 코드를 직접 작성하여 원하는 내용을 출력.
+
+<table>
+  <tr>
+    <td><b>Title<b></td>
+    <td>버튼에 표시될 이름</td>
+  </tr>
+        <tr>
+    <td><b>Priority<b></td>
+    <td>카테고리의 상단에 위치할 순서</td>
+  </tr>
+       <tr>
+    <td><b>IsRunTimeOnly<b></td>
+    <td>해당 내용이 플레이 시에만 보여질 것인지 표시</td>
+  </tr>
+      <tr>
+    <td><b>OnEnable(testTool)<b></td>
+    <td>TestTool이 처음 열리거나 프로젝트가 컴파일시 호출</td>
+  </tr>
+      <tr>
+    <td><b>OnGUI<b></td>
+    <td>매 프레임 그려질 내용을 작성</td>
+  </tr>
+</table>
+
+```cs
+public class TestToolTemp2Element : ITestToolElement
+{
+    public string Title => "Temp2";
+    public int Priority => 0;
+    public bool IsRunTimeOnly => false;
+    public void OnEnable(TestTool testTool)
+    {
+    }
+
+    private int _testNum;
+    public void OnGUI()
+    {
+        EditorGUILayout.LabelField("Temp2", EditorStyles.boldLabel);
+        _testNum = EditorGUILayout.IntField("TestNum", _testNum);
+    }
+}
+
+```
+
+
+<br>
+
+[🎞️튜토리얼](https://youtu.be/YE4tB3xCXzk)
 
 <br>
 <br>
@@ -233,195 +329,63 @@ public class MoveState : IState
 
 ---
 
-### Services
 
-간편한 참조와 의존성 주입을 위한 서비스 로케이터, 기본적으로 싱글톤 적 성격을 띄고 있으므로 Monobehaviour 객체는 등록시 DontDestroyOnLoad 처리되며 중복된 객체가 등록되거나 등록 해제시 파괴됨.
+### Save
+
+**SaveManager** <br>
+`Create / [LumosLib] / Prefabs / Manager / Save`
+
+여러가지 저장소 타입을 할 수 있도록 `BaseDataSource` 를 통해 지정하고 해당 저장소로 저장을 담당. `BaseDataSource`를 상속받는 SO 를 구현해 원하는 저장소를 구현 할 수 있음.
+
 
 <table>
   <tr>
-    <td><b>Register(T service)<b></td>
-    <td>서비스 등록</td>
+    <td><b>SaveDataSource<b></td>
+    <td>원하는 데이터 저장소 SO</td>
   </tr>
   <tr>
-    <td><b>Unregister()<b></td>
-    <td>서비스 등록 해제</td>
+    <td><b>SaveAsync(data)<b></td>
+    <td>현재 저장소로 데이터 저장</td>
   </tr>
   <tr>
-    <td><b>Get<b></td>
-    <td>서비스 조회</td>
+    <td><b>LoadAsync</td>
+    <td>현재 저장소에서 데이터 로드</td>
+  </tr>
+      <tr>
+    <td><b>GetAll()</td>
+    <td>모든 리소스 반환</td>
+  </tr>
+</table>
+
+<br>
+<br>
+
+**JsonDataSource** <br>
+`Create / [LumosLib] / Scriptable Objects / Data Source / Json` <br>
+
+<img width="476" height="165" alt="image" src="https://github.com/user-attachments/assets/9fddc150-c2b9-45b6-a2ee-9a84e84ef967" />
+
+<br>
+
+기본적인 제이슨 형태의 데이터 저장소 `FileName` 을 기입하면 자동으로 `FolderPath` 를 시각적으로 보여주며 해당 폴더의 Open 버튼 제공
+
+<table>
+  <tr>
+    <td><b>FileName<b></td>
+    <td>원하는 데이터 저장소 SO</td>
   </tr>
 </table>
 
 
-```csharp
-Services.Register<IGameSettings>(this);
-IGameSettings Settings => Services.Get<IGameSettings>();
-```
+<br>
+
+[🎞️튜토리얼](https://youtu.be/wTsoA4710tc?si=3JW80kLbe9tUF0PC)
 
 <br>
 <br>
 
 ---
 
-### Input
-
-**PointerManager** <br>
-`Create / [LumosLib] / Prefabs / Manager / Pointer`
-
-InputSystem 을 통해 메인 클릭에 대한 처리를 담당.
-
-<table>
-  <tr>
-    <td><b>PosInputReference<b></td>
-    <td>포인터의 위치를 나타낼 InputActionReference</td>
-  </tr>
-  <tr>
-    <td><b>ClickInputReference<b></td>
-    <td>포인터의 입력을 나타낼 InputActionReference</td>
-  </tr>
-  <tr>
-    <td><b>IsPressed</td>
-    <td>포인터가 눌려있는지 여부</td>
-  </tr>
-      <tr>
-    <td><b>ScreenPosition</td>
-    <td>스크린 기준 포인터 위치</td>
-  </tr>
-      <tr>
-    <td><b>WorldPosition</td>
-    <td>월드 기준 포인터 위치</td>
-  </tr>
-       <tr>
-    <td><b>GetHitCollider()</td>
-    <td>레이캐스트를 통한 포인터 위치 콜라이더 검출</td>
-  </tr>
-      <tr>
-    <td><b>SetCamera()</td>
-    <td>수동 카메라 등록 필요시 등록</td>
-  </tr>
-</table>
-
-
-<br>
-<br>
-
-**PointerDownEvent & UpEvent**
-
-<table>
-  <tr>
-    <td><b>ScreenPosition<b></td>
-    <td>이벤트 발생 기준 포인터의 스크린 위치</td>
-  </tr>
-  <tr>
-    <td><b>WorldPosition<b></td>
-    <td>이벤트 발생 기준 포인터의 월드 위치</td>
-  </tr>
-  <tr>
-    <td><b>HitCollider</td>
-    <td>이벤트 발생 기준 검출된 포인터 위치의 콜라이더</td>
-  </tr>
-</table>
-
-<br>
-<br>
-
-```csharp
-
-EventBus<PointerDownEvent>.Subscribe(OnPointerDown);
-EventBus<PointerDownEvent>.Unsubscribe(OnPointerDown);
-
-private void OnPointerDown(PointerDownEvent evt)
-{
-    // 1. 클릭된 위치의 콜라이더 확인
-    if (evt.HitCollider != null)
-    {
-        Debug.Log($"클릭된 오브젝트: {evt.HitCollider.name}");
-        Debug.Log($"월드 좌표: {evt.WorldPosition}");
-    }
-    else
-    {
-        Debug.Log("허공을 클릭했습니다.");
-    }
-}
-
-```
-
-
-<br>
-<br>
-
----
-
-### PreInitialize
-
-**PreInitializer** 
-
-<img width="472" height="270" alt="image" src="https://github.com/user-attachments/assets/f53b06e9-a2cf-4df8-ab0a-16bab73839d6" />
-
-<br>
-
-플레이시 `Preload Objects` 들을 생성하고 `Use Pre Initialize` 체크 시 사전 초기화를 진행. `[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]` 시점에 병렬식 비동기로 진행되므로 씬에 미리 배치되어있던 오브젝트의 Awake등에서 호출 주의
-
-<br>
-
-<table>
-  <tr>
-    <td><b>IsInitialized<b></td>
-    <td>초기화가 완료되었는지 확인</td>
-  </tr>
-  <tr>
-    <td><b>InitProgress<b></td>
-    <td>[완료 목록 개수 / 총 목록 개수] 의 진행률</td>
-  </tr>
-  <tr>
-    <td><b>WaitInitAsync()</td>
-    <td>외부에서 해당 초기화가 완료될때까지 비동기로 기다리는 UniTask</td></td>
-  </tr>
-</table>
-
-<br>
-
-```cs
-
-public async void Awake()
-{
-    // 사전 초기화가 필요한 클래스를 참조할 경우 대기
-    await PreInitializer.WaitInitAsync();
-
-    //이후 참조
-}
-
-```
-
-<br>
-
-**IPreInitializable**
-
-사전 초기화를 진행 할 대상. `UniTask<bool> InitAsync(PreInitContext ctx);` 매서드를 통해 초기화를 진행하고 결과를 bool 로 리턴. 만약 초기화중 참조해야 할 대상 또한 초기화 대상이라면 `context` 의 `GetAsync()` 를 호출하여 대상의 초기화를 기다린 후 진행 가능. 
-
-<br>
-
-```cs
-
- protected override async UniTask<bool> OnInitAsync(PreInitContext ctx)
-{
-    _resourceMgr = Services.Get<IResourceManager>();
-    
-    var resourceInit = _resourceMgr as IPreInitializable;
-    if (resourceInit == null)
-        return false;
-    
-    var result = await ctx.GetAsync(resourceInit);
-    if (result == null) 
-        return false;
-}
-
-```
-
-<br>
-<br>
-
----
 
 ### Pool
 
@@ -534,56 +498,164 @@ public class Shooter : MonoBehaviour
 
 ---
 
-### Save
+### Input
 
-**SaveManager** <br>
-`Create / [LumosLib] / Prefabs / Manager / Save`
+**PointerManager** <br>
+`Create / [LumosLib] / Prefabs / Manager / Pointer`
 
-여러가지 저장소 타입을 할 수 있도록 `BaseDataSource` 를 통해 지정하고 해당 저장소로 저장을 담당. `BaseDataSource`를 상속받는 SO 를 구현해 원하는 저장소를 구현 할 수 있음.
-
+InputSystem 을 통해 메인 클릭에 대한 처리를 담당.
 
 <table>
   <tr>
-    <td><b>SaveDataSource<b></td>
-    <td>원하는 데이터 저장소 SO</td>
+    <td><b>PosInputReference<b></td>
+    <td>포인터의 위치를 나타낼 InputActionReference</td>
   </tr>
   <tr>
-    <td><b>SaveAsync(data)<b></td>
-    <td>현재 저장소로 데이터 저장</td>
+    <td><b>ClickInputReference<b></td>
+    <td>포인터의 입력을 나타낼 InputActionReference</td>
   </tr>
   <tr>
-    <td><b>LoadAsync</td>
-    <td>현재 저장소에서 데이터 로드</td>
+    <td><b>IsPressed</td>
+    <td>포인터가 눌려있는지 여부</td>
   </tr>
       <tr>
-    <td><b>GetAll()</td>
-    <td>모든 리소스 반환</td>
+    <td><b>ScreenPosition</td>
+    <td>스크린 기준 포인터 위치</td>
+  </tr>
+      <tr>
+    <td><b>WorldPosition</td>
+    <td>월드 기준 포인터 위치</td>
+  </tr>
+       <tr>
+    <td><b>GetHitCollider()</td>
+    <td>레이캐스트를 통한 포인터 위치 콜라이더 검출</td>
+  </tr>
+      <tr>
+    <td><b>SetCamera()</td>
+    <td>수동 카메라 등록 필요시 등록</td>
   </tr>
 </table>
 
-<br>
-<br>
-
-**JsonDataSource** <br>
-`Create / [LumosLib] / Scriptable Objects / Data Source / Json` <br>
-
-<img width="476" height="165" alt="image" src="https://github.com/user-attachments/assets/9fddc150-c2b9-45b6-a2ee-9a84e84ef967" />
 
 <br>
+<br>
 
-기본적인 제이슨 형태의 데이터 저장소 `FileName` 을 기입하면 자동으로 `FolderPath` 를 시각적으로 보여주며 해당 폴더의 Open 버튼 제공
+**PointerDownEvent & UpEvent**
 
 <table>
   <tr>
-    <td><b>FileName<b></td>
-    <td>원하는 데이터 저장소 SO</td>
+    <td><b>ScreenPosition<b></td>
+    <td>이벤트 발생 기준 포인터의 스크린 위치</td>
+  </tr>
+  <tr>
+    <td><b>WorldPosition<b></td>
+    <td>이벤트 발생 기준 포인터의 월드 위치</td>
+  </tr>
+  <tr>
+    <td><b>HitCollider</td>
+    <td>이벤트 발생 기준 검출된 포인터 위치의 콜라이더</td>
+  </tr>
+</table>
+
+<br>
+<br>
+
+```csharp
+
+EventBus<PointerDownEvent>.Subscribe(OnPointerDown);
+EventBus<PointerDownEvent>.Unsubscribe(OnPointerDown);
+
+private void OnPointerDown(PointerDownEvent evt)
+{
+    // 1. 클릭된 위치의 콜라이더 확인
+    if (evt.HitCollider != null)
+    {
+        Debug.Log($"클릭된 오브젝트: {evt.HitCollider.name}");
+        Debug.Log($"월드 좌표: {evt.WorldPosition}");
+    }
+    else
+    {
+        Debug.Log("허공을 클릭했습니다.");
+    }
+}
+
+```
+
+
+<br>
+<br>
+
+---
+
+### Audio
+
+**AudioManager** <br>
+`Create / [LumosLib] / Prefabs / Manager / Audio`
+
+오디오 통합 관리자 <br>
+
+<table>
+  <tr>
+    <td><b>Mixer</b></td>
+    <td>사용할 오디오 믹서</td>
+  </tr>
+  <tr>
+    <td><b>AudioPlayer</b></td>
+    <td>재생에 사용되는 프리팹</td>
+  </tr>
+   <tr>
+    <td><b>SetVolume()</b></td>
+    <td>사용되는 믹서 볼륨 조절</td>
+  </tr>
+   <tr>
+    <td><b>BGM</b></td>
+    <td>`bgmType`별 독립 채널 관리 (전투, 환경음 등)</td>
+  </tr>
+   <tr>
+    <td><b>SFX</b></td>
+    <td>추적이 필요 없는 단발성 효과음</td>
   </tr>
 </table>
 
 
+
 <br>
 
-[🎞️튜토리얼](https://youtu.be/wTsoA4710tc?si=3JW80kLbe9tUF0PC)
+**AudioPlayer** <br>
+`Create / [LumosLib] / Prefabs / Audio Player`
+
+매니저를 통해 관리되는 오디오 플레이어
+
+
+<br>
+
+**Sound Asset** <br>
+`Create / [LumosLib] / Scriptable Objects / SoundAsset`
+
+사용되는 사운드 보관 SO
+
+<table>
+  <tr>
+    <td><b>MixerGroup</b></td>
+    <td>사용될 믹서그룹</td>
+  </tr>
+  <tr>
+    <td><b>Clip</b></td>
+    <td>사용될 오디오 클립</td>
+  </tr>
+   <tr>
+    <td><b>VolumeMult</b></td>
+    <td>볼륨 가중치</td>
+  </tr>
+   <tr>
+    <td><b>IsLoop</b></td>
+    <td>반복 여부</td>
+</table>
+
+<br>
+
+[🎬튜토리얼](https://youtu.be/h66xEmaztBA?si=_H5PhyZfN-9ZT5Gh)
+
 
 <br>
 <br>
@@ -721,74 +793,6 @@ public class TutorialTrigger : MonoBehaviour
 
 ---
 
-### TestTool
-`Window / [LumosLib] / TestTool` 
-
-<img width="421" height="540" alt="image" src="https://github.com/user-attachments/assets/b423db3b-d9c3-4ead-afe8-986c903aa9a5" />
-
-<br>
-
-Editor Window 를 활용하여 프로젝트에서 여러가지 기능 테스트 상황을 한 곳으로 모으고 시각적으로 용이하도록 제작된 툴. Settings 을 통해 여러가지 커스터 마이징이 가능함.
-
-<br>
-<br>
-
-**ITestToolElement**
-
-실제 내용이 그려질 인터페이스, 상속받아 OnGUI 부분에 에디터 레이아웃 코드를 직접 작성하여 원하는 내용을 출력.
-
-<table>
-  <tr>
-    <td><b>Title<b></td>
-    <td>버튼에 표시될 이름</td>
-  </tr>
-        <tr>
-    <td><b>Priority<b></td>
-    <td>카테고리의 상단에 위치할 순서</td>
-  </tr>
-       <tr>
-    <td><b>IsRunTimeOnly<b></td>
-    <td>해당 내용이 플레이 시에만 보여질 것인지 표시</td>
-  </tr>
-      <tr>
-    <td><b>OnEnable(testTool)<b></td>
-    <td>TestTool이 처음 열리거나 프로젝트가 컴파일시 호출</td>
-  </tr>
-      <tr>
-    <td><b>OnGUI<b></td>
-    <td>매 프레임 그려질 내용을 작성</td>
-  </tr>
-</table>
-
-```cs
-public class TestToolTemp2Element : ITestToolElement
-{
-    public string Title => "Temp2";
-    public int Priority => 0;
-    public bool IsRunTimeOnly => false;
-    public void OnEnable(TestTool testTool)
-    {
-    }
-
-    private int _testNum;
-    public void OnGUI()
-    {
-        EditorGUILayout.LabelField("Temp2", EditorStyles.boldLabel);
-        _testNum = EditorGUILayout.IntField("TestNum", _testNum);
-    }
-}
-
-```
-
-
-<br>
-
-[🎞️튜토리얼](https://youtu.be/YE4tB3xCXzk)
-
-<br>
-<br>
-
----
 
 ### Popup
 
