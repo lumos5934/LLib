@@ -30,7 +30,7 @@
 * [ PreInitialize ](#PreInitialize)
 * [ Pool ](#Pool)
 * [ Resource ](#Resource)
-* [ Save ](https://www.notion.so/Save-2df3966a742c80898b8ad7cd3d16f9ec?source=copy_link)
+* [ Save ](#Save)
 * [ Tutorial ](https://www.notion.so/Tutorial-2df3966a742c808b860be13cf2e99a08?source=copy_link)
 * [ TestWindow ](https://www.notion.so/Test-Editor-2df3966a742c80c3af6ac96904d157da?source=copy_link)
 * [ Popup ](https://www.notion.so/UI-2df3966a742c80f38990cbc42a6d1b49?source=copy_link)
@@ -266,6 +266,8 @@ IGameSettings Settings => Services.Get<IGameSettings>();
 
 **PointerManager**
 
+`Create / [LumosLib] / Prefabs / Manager / Pointer`
+
 InputSystem 을 통해 메인 클릭에 대한 처리를 담당.
 
 <table>
@@ -424,6 +426,7 @@ public async void Awake()
 ### Pool
 
 **PoolManager**
+`Create / [LumosLib] / Prefabs / Manager / Pool`
 
 유니티 오브젝트 풀을 래핑한 형태의 관리자. 추후 변경 가능성 높음.
 
@@ -503,6 +506,7 @@ public class Shooter : MonoBehaviour
 ### Resource
 
 **ResourceManager**
+`Create / [LumosLib] / Prefabs / Manager / Resource`
 
 리소스를 미리 캐싱해놓고 참조의 편의를 돕는 관리자. 어드레서블과의 교체를 염두해 label 과 key 를 사용해 조회하고 현재 label 은 폴더이름을 이용.
 
@@ -524,6 +528,59 @@ public class Shooter : MonoBehaviour
     <td>모든 리소스 반환</td>
   </tr>
 </table>
+
+<br>
+<br>
+
+---
+
+### Save
+
+**SaveManager**
+
+`Create / [LumosLib] / Prefabs / Manager / Save`
+
+여러가지 저장소 타입을 할 수 있도록 `BaseDataSource` 를 통해 지정하고 해당 저장소로 저장을 담당. `BaseDataSource`를 상속받는 SO 를 구현해 원하는 저장소를 구현 할 수 있음.
+
+
+<table>
+  <tr>
+    <td><b>SaveDataSource<b></td>
+    <td>원하는 데이터 저장소 SO</td>
+  </tr>
+  <tr>
+    <td><b>SaveAsync(data)<b></td>
+    <td>현재 저장소로 데이터 저장</td>
+  </tr>
+  <tr>
+    <td><b>LoadAsync</td>
+    <td>현재 저장소에서 데이터 로드</td>
+  </tr>
+      <tr>
+    <td><b>GetAll()</td>
+    <td>모든 리소스 반환</td>
+  </tr>
+</table>
+
+<br>
+<br>
+
+**JsonDataSource**
+
+<img width="476" height="165" alt="image" src="https://github.com/user-attachments/assets/9fddc150-c2b9-45b6-a2ee-9a84e84ef967" />
+
+<br>
+
+기본적인 제이슨 형태의 데이터 저장소 `FileName` 을 기입하면 자동으로 `FolderPath` 를 시각적으로 보여주며 해당 폴더의 Open 버튼 제공
+
+<table>
+  <tr>
+    <td><b>FileName<b></td>
+    <td>원하는 데이터 저장소 SO</td>
+  </tr>
+</table>
+
+[🎞️튜토리얼](https://youtu.be/wTsoA4710tc?si=3JW80kLbe9tUF0PC)
 
 <br>
 <br>
