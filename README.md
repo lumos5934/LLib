@@ -563,7 +563,8 @@ public class Shooter : MonoBehaviour
 <br>
 <br>
 
-**JsonDataSource**
+**JsonDataSource** <br>
+`Create / [LumosLib] / Scriptable Objects / Data Source / Json` <br>
 
 <img width="476" height="165" alt="image" src="https://github.com/user-attachments/assets/9fddc150-c2b9-45b6-a2ee-9a84e84ef967" />
 
@@ -578,7 +579,90 @@ public class Shooter : MonoBehaviour
   </tr>
 </table>
 
+<br>
+
 [🎞️튜토리얼](https://youtu.be/wTsoA4710tc?si=3JW80kLbe9tUF0PC)
+
+<br>
+<br>
+
+---
+
+### Tutorial
+
+**TutorialManager**<br>
+`Create / [LumosLib] / Prefabs / Manager / Tutorial`
+
+SO 를 통해 중복되는 상황이 많고 하나의 시퀀스로 이루어진 튜토리얼들을 조금 더 편히 구현하기 위한 관리자
+
+<table>
+  <tr>
+    <td><b>GetTable<b></td>
+    <td>현재 튜토리얼 테이블을 반환</td>
+  </tr>
+  <tr>
+    <td><b>GetTutorial<b></td>
+    <td>현재 튜토리얼을 반환</td>
+  </tr>
+  <tr>
+    <td><b>Play(table)</td>
+    <td>해당 테이블의 튜토리얼을 실행</td>
+  </tr>
+</table>
+
+
+<br>
+<br>
+
+**TutorialTable**<br>
+`Create / [LumosLib] / Scriptable Objects / Tutorial Table` 
+
+여러가지 튜토리얼을 모아서 하나의 시퀀스로 가지고 있는 SO 컨테이너
+
+<br>
+<br>
+
+**TutorialAsset**
+
+Tutorial 구현체를 전달하고 TutorialTable 에 참조시키기 위한 목적의 SO. 
+
+<table>
+  <tr>
+    <td><b>Create<b></td>
+    <td>필요한 Tutorial을 구현, 반환</td>
+  </tr>
+</table>
+
+<br>
+<br>
+
+**Tutorial**
+
+실제 동작을 담당하는 클래스 TutorailAsset 을 통하여 생성, 전달되어 실행됨.
+
+<table>
+  <tr>
+    <td><b>Enter<b></td>
+    <td>해당 튜토리얼 실행시 호출</td>
+  </tr>
+        <tr>
+    <td><b>Exit<b></td>
+    <td>해당 튜토리얼 종료시 호출</td>
+  </tr>
+       <tr>
+    <td><b>Update<b></td>
+    <td>해당 튜토리얼 진행중 매 프레임 호출</td>
+  </tr>
+      <tr>
+    <td><b>IsComplete<b></td>
+    <td>해당 튜토리얼에 대한 완료 조건</td>
+  </tr>
+</table>
+
+
+<br>
+
+[🎞️튜토리얼](https://youtu.be/TFe5S4F2Jes?si=U16L0agAPlzboQGi)
 
 <br>
 <br>
