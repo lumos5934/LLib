@@ -33,7 +33,7 @@
 * [ Save ](#Save)
 * [ Tutorial ](#Tutorial)
 * [ TestTool ](#TestTool)
-* [ Popup ](https://www.notion.so/UI-2df3966a742c80f38990cbc42a6d1b49?source=copy_link)
+* [ Popup ](#Popup)
 
 <br>
 <br>
@@ -794,7 +794,7 @@ public class TestToolTemp2Element : ITestToolElement
 **PopupManager** <br>
 `Create / [LumosLib] / Prefabs / Manager / Popup`
 
-UI 중 통상적인 팝업에 해당하는 **UIPopup**` 들을 간편히 관리 하기 위한 관리자. 기본적으로 카메라 기반으로 작동하므로 팝업에 해당 하는 UI 의 `CanvasRenderMode` 도 카메라로 강제됨. 런타임 시 리소스를 통해 캐싱해두기 떄문에 해당 팝업 UI 가 리소스 매니저를 통해 관리되어야함. 
+UI 중 통상적인 팝업에 해당하는 **UIPopup** 들을 간편히 관리 하기 위한 관리자. 기본적으로 카메라 기반으로 작동하므로 팝업에 해당 하는 UI 의 `CanvasRenderMode` 도 카메라로 강제됨. 런타임 시 리소스를 통해 캐싱해두기 떄문에 해당 팝업 UI 가 리소스 매니저를 통해 관리되어야함. 
 
 <table>
   <tr>
