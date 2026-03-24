@@ -35,7 +35,15 @@ namespace LumosLib
         
         public static void Unregister<T>() where T : class
         {
-            _services.Remove(typeof(T));
+            if (_services.TryGetValue(typeof(T), out var service))
+            {
+                if (service is MonoBehaviour mono && mono != null)
+                {
+                    Object.Destroy(mono.gameObject);
+                }
+
+                _services.Remove(typeof(T));
+            }
         }
         
         

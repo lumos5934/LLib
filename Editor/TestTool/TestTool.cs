@@ -8,10 +8,11 @@ namespace LumosLib.Editor
 {
     public class TestTool : EditorWindow
     {
+        #region Fields
+
         private List<ITestToolElement> _elements;
         private ITestToolElement _selectedElement;
         private Vector2 _scrollPos;
-        
         
         private GUIStyle _titleStyle;
         private GUIStyle TitleStyle
@@ -21,10 +22,8 @@ namespace LumosLib.Editor
                 if (_titleStyle == null)
                 {
                     _titleStyle = new GUIStyle(EditorStyles.boldLabel);
-                    _titleStyle.fontSize = 25;
                     _titleStyle.fontStyle = FontStyle.Bold;
                     _titleStyle.alignment = TextAnchor.MiddleCenter;
-
                     _titleStyle.hover.background = null;
                     _titleStyle.active.background = null;
                 }
@@ -71,21 +70,21 @@ namespace LumosLib.Editor
                 return _mainRectStyle;
             }
         }
-        private GUIStyle _sideRectStyle;
-        private GUIStyle SideRectStyle
+        private GUIStyle _categorySideRectStyle;
+        private GUIStyle CategorySideRectStyle
         {
             get
             {
-                if (_sideRectStyle == null)
+                if (_categorySideRectStyle == null)
                 {
-                    _sideRectStyle = new GUIStyle()
+                    _categorySideRectStyle = new GUIStyle()
                     {
-                        padding = new RectOffset(2, 0, 3, 3),
+                        padding = new RectOffset(2, 0, 0, 3),
                         margin = new RectOffset(0, 0, 0, 0)
                     };
                 }
 
-                return _sideRectStyle;
+                return _categorySideRectStyle;
             }
         }
         private GUIStyle _contentRectStyle;
@@ -119,9 +118,7 @@ namespace LumosLib.Editor
                         overflow = new RectOffset(0,0,0,0),
                         fontStyle = FontStyle.Bold,
                         alignment = TextAnchor.MiddleCenter,
-                        fontSize = 12,
                         stretchWidth = true,
-                        fixedHeight = 25,
                     };
                 }
 
@@ -150,21 +147,10 @@ namespace LumosLib.Editor
             }
         }
 
-        private LumosLibSettings _settings;
-        private LumosLibSettings Settings
-        {
-            get
-            {
-                if (_settings == null)
-                {
-                    _settings = Resources.Load<LumosLibSettings>(nameof(LumosLibSettings));
-                }
+        private LumosLibSettings Settings => LumosLibSettings.Instance;
 
-                return _settings;
-            }
-        }
+        #endregion
 
-        
         
         [MenuItem("Window/[ Lumos Lib ]/Test Tool", false, int.MinValue)]
         public static void Open()
@@ -184,13 +170,17 @@ namespace LumosLib.Editor
                 .OrderBy(t => t.Priority)
                 .ToList();
             
+            _elements.ForEach(i => i.OnEnable(this));
+            
+            
             _titleStyle = null;
             _titleShadowStyle = null;
             _mainRectStyle = null;
-            _sideRectStyle = null;
+            _categorySideRectStyle = null;
             _contentRectStyle = null;
             _btnStyle = null;
             _noticeStyle = null;
+            
             
             EditorApplication.update += Repaint;
         }
@@ -204,105 +194,81 @@ namespace LumosLib.Editor
         
         private void OnGUI()
         {
-            Color titleColor = Settings.NameColor;
-            TitleStyle.normal.textColor = titleColor;
-            TitleStyle.hover.textColor = titleColor;
-            TitleStyle.active.textColor = titleColor;
-            TitleStyle.focused.textColor = titleColor;
-            
-            Color titleShadowColor = Settings.NameShadowColor;
-            TitleShadowStyle.normal.textColor = titleShadowColor;
-            TitleShadowStyle.hover.textColor = titleShadowColor;
-            TitleShadowStyle.active.textColor = titleShadowColor;
-            TitleShadowStyle.focused.textColor = titleShadowColor;
-            
-            BtnStyle.normal.textColor = Settings.ButtonNameNormalColor;
-            BtnStyle.hover.textColor = Settings.ButtonNameHoverColor;
+            if (Settings == null)
+                return;
             
             
             _scrollPos = EditorGUILayout.BeginScrollView(_scrollPos);
             {
-                DrawTitle();
-
+                DrawTop();
             
                 GUI.backgroundColor = Color.black;
                 Rect mainRect = EditorGUILayout.BeginVertical(MainRectStyle);
                 {
                     GUI.backgroundColor = Color.white;
                 
-                    if (!Application.isPlaying)
-                    {
-                        DrawNotice();
-                    }
+                   if (_selectedElement == null)
+                   {
+                       DrawCategory(mainRect);
+                   }
                     else
                     {
-                        if (_selectedElement == null)
+                        EditorGUILayout.BeginHorizontal();
                         {
-                            DrawGrid(mainRect);
-                            EditorGUILayout.Space(3);
-                            DrawElementButtons();
-                        }
-                        else
-                        {
-                            EditorGUILayout.BeginHorizontal();
+                            var categorySideRect = EditorGUILayout.BeginVertical(CategorySideRectStyle, GUILayout.Width(Settings.CategorySideWidth), GUILayout.ExpandHeight(true));
                             {
-                                Rect sideRect = EditorGUILayout.BeginVertical(SideRectStyle, 
-                                    GUILayout.Width(90), GUILayout.ExpandHeight(true));
-                                {
-                                    DrawGrid(sideRect);
-                                    DrawElementButtons();
-                                
-                                    EditorGUILayout.EndVertical();
-                                }
-                
+                                DrawCategory(categorySideRect);
                             
-                                GUI.backgroundColor = new Color(0f, 0f, 0f, 0.7f);
-                                Rect contentRect = EditorGUILayout.BeginVertical(ContentRectStyle,
-                                    GUILayout.ExpandHeight(true), GUILayout.ExpandWidth(true));
-                                {
-                                    GUI.backgroundColor = Color.white;
-                                
-                                    if (_selectedElement != null)
-                                    {
-                                        _selectedElement.OnGUI();
-                                        HandleElementMenu(contentRect, _selectedElement);
-                                    }
-                                
-                                    EditorGUILayout.EndVertical();
-                                }
-                            
-                                EditorGUILayout.EndHorizontal();
+                                EditorGUILayout.EndVertical();
                             }
+
+                            GUI.backgroundColor = Settings.ContentsBackgroundColor;
+                            Rect contentsRect = EditorGUILayout.BeginVertical(ContentRectStyle,
+                                GUILayout.ExpandHeight(true), GUILayout.ExpandWidth(true));
+                            {
+                                GUI.backgroundColor = Color.white;
+
+                                DrawContents(contentsRect);
+                            
+                                EditorGUILayout.EndVertical();
+                            }
+                        
+                            EditorGUILayout.EndHorizontal();
                         }
                     }
+                   
                     EditorGUILayout.EndVertical();
                 }
                 EditorGUILayout.EndScrollView();
             }
         }
 
+        #region TOP
 
-        private void DrawNotice()
+        private void DrawTop()
         {
-            EditorGUILayout.BeginVertical();
-            {
-                GUILayout.FlexibleSpace();
-                EditorGUILayout.BeginHorizontal();
-                {
-                    GUILayout.FlexibleSpace();
-                    string message = "⚠️ RUNTIME ONLY";
-                    GUILayout.Label(message, NoticeStyle, GUILayout.MinWidth(300), GUILayout.MinHeight(100));
-                    GUILayout.FlexibleSpace();
-                    
-                    EditorGUILayout.EndHorizontal();
-                }
-                
-        
-                GUILayout.FlexibleSpace();
-                EditorGUILayout.EndVertical();
-            }
+            TitleStyle.fontSize = Settings.TitleFontSize;
+            
+            Color titleColor = Settings.TitleFontColor;
+            TitleStyle.normal.textColor = titleColor;
+            TitleStyle.hover.textColor = titleColor;
+            TitleStyle.active.textColor = titleColor;
+            TitleStyle.focused.textColor = titleColor;
+            
+            
+            TitleShadowStyle.fontSize = Settings.TitleFontSize;
+            
+            Color titleShadowColor = Settings.TitleFontShadowColor;
+            TitleShadowStyle.normal.textColor = titleShadowColor;
+            TitleShadowStyle.hover.textColor = titleShadowColor;
+            TitleShadowStyle.active.textColor = titleShadowColor;
+            TitleShadowStyle.focused.textColor = titleShadowColor;
+            
+            DrawTitle();
+            DrawUnderline(GUILayoutUtility.GetLastRect());
         }
-     
+        
+
         private void DrawTitle()
         {
             EditorGUILayout.Space(20f);
@@ -310,31 +276,51 @@ namespace LumosLib.Editor
             GUIContent content = EditorGUIUtility.TrTextContent("TEST TOOL");
             Rect rect = GUILayoutUtility.GetRect(content, TitleStyle);
 
-
             var shadowStyle = TitleShadowStyle;
             GUI.Label(new Rect(rect.x + 2.5f, rect.y + 2.5f, rect.width, rect.height), content, shadowStyle);
-
-            
             GUI.Label(rect, content, TitleStyle);
 
-            
             EditorGUILayout.Space(20f);
-            
-            DrawUnderline(GUILayoutUtility.GetLastRect());
         }
         
         
         private void DrawUnderline(Rect rect)
         {
             float lineY = rect.yMax - 1.5f;
-            EditorGUI.DrawRect(new Rect(rect.x, lineY - 1f, rect.width, 1), new Color(0.6f, 0.6f, 0.6f, 0.15f));
-            EditorGUI.DrawRect(new Rect(rect.x, lineY, rect.width, 2), new Color(1, 1, 1, 0.15f));
-            EditorGUI.DrawRect(new Rect(rect.center.x - 20, lineY - 1f, 40, 1), Settings.UnderLineHighlightShadowColor);
-            EditorGUI.DrawRect(new Rect(rect.center.x - 20, lineY, 40, 2), Settings.UnderLineHighlightColor);
+            
+            var lineColor = Settings.TitleUnderLineColor;
+            var lineColorShadowColor = lineColor * 0.4f;
+            lineColor.a = lineColor.a;
+            
+            EditorGUI.DrawRect(new Rect(rect.x, lineY - 1f, rect.width, 1), lineColorShadowColor);
+            EditorGUI.DrawRect(new Rect(rect.x, lineY, rect.width, 2), lineColor);
+
+            var highLightColor = Settings.TitleUnderLineHighlightColor;
+            var highLightShadowColor = highLightColor * 0.4f;
+            highLightShadowColor.a = highLightColor.a;
+          
+            EditorGUI.DrawRect(new Rect(rect.center.x - 20, lineY - 1f, 40, 1), highLightShadowColor);
+            EditorGUI.DrawRect(new Rect(rect.center.x - 20, lineY, 40, 2), Settings.TitleUnderLineHighlightColor);
+        }
+
+        #endregion
+
+        #region CATEGORY
+
+        private void DrawCategory(Rect mainRect)
+        {
+            DrawGrid(mainRect);
+            EditorGUILayout.Space(2);
+            DrawCategoryButtons();
         }
        
-        private void DrawElementButtons()
+        private void DrawCategoryButtons()
         {
+            BtnStyle.normal.textColor = Settings.ButtonFontNormalColor;
+            BtnStyle.hover.textColor = Settings.ButtonFontHoverColor;
+            BtnStyle.fixedHeight = Settings.ButtonHeight;
+            BtnStyle.fontSize = Settings.ButtonFontSize;
+            
             for (int i = 0; i < _elements.Count; i++)
             {
                 var target = _elements[i];
@@ -342,7 +328,6 @@ namespace LumosLib.Editor
                 GUI.backgroundColor = (_selectedElement == target)
                     ? Settings.ButtonSelectedColor
                     : Settings.ButtonNormalColor;
-
 
                 var label = target.Title.ToUpper();
                 
@@ -362,14 +347,14 @@ namespace LumosLib.Editor
                     var outlineColor = Settings.ButtonHighlightColor;
                     
                     Handles.color = outlineColor;
-                    // 내부 색상은 투명하게(new Color(0,0,0,0)), 테두리는 노란색으로
+                    // 테두리만 컬러
                     Handles.DrawSolidRectangleWithOutline(rect, 
                         new Color(0, 0, 0, 0), 
                         outlineColor);
                 }
-                
-                GUI.backgroundColor = Color.white;
             }
+            
+            GUI.backgroundColor = Color.white;
         }
         
         private void DrawGrid(Rect rect)
@@ -392,7 +377,31 @@ namespace LumosLib.Editor
             Handles.EndGUI();
         }
         
-        
+        #endregion
+
+        #region Contents
+
+        private void DrawContents(Rect contentsRect)
+        {
+            if (_selectedElement != null)
+            {
+                if (_selectedElement.IsRunTimeOnly && 
+                    !Application.isPlaying)
+                {
+                    GUILayout.FlexibleSpace();
+                    string message = "⚠️ RUNTIME ONLY";
+                    GUILayout.Label(message, NoticeStyle);
+                    GUILayout.FlexibleSpace();
+                }
+                else
+                {
+                    _selectedElement.OnGUI();
+                }
+            }
+            
+            HandleElementMenu(contentsRect, _selectedElement);
+        }
+
         private void HandleElementMenu(Rect rect, ITestToolElement element)
         {
             Event current = Event.current;
@@ -401,7 +410,7 @@ namespace LumosLib.Editor
             {
                 GenericMenu menu = new GenericMenu();
             
-                menu.AddItem(new GUIContent("Script"), false, () => OpenScript(element));
+                menu.AddItem(new GUIContent($"{element.GetType().Name} Script"), false, () => OpenElementScript(element));
             
                 menu.ShowAsContext();
             
@@ -410,7 +419,7 @@ namespace LumosLib.Editor
         }
         
         
-        private void OpenScript(ITestToolElement element)
+        private void OpenElementScript(ITestToolElement element)
         {
             var type = element.GetType();
             
@@ -428,6 +437,8 @@ namespace LumosLib.Editor
                 }
             }
         }
+        
+        #endregion
     }
 }
 

@@ -30,8 +30,7 @@ namespace LumosLib
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Init()
         {
-            var libSettings = Resources.Load<LumosLibSettings>(nameof(LumosLibSettings));
-            
+            var libSettings = LumosLibSettings.Instance;
             if (libSettings == null || !libSettings.UsePreInitialize)
             {
                 _initBarrier.TrySetResult();

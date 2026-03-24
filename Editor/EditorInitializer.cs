@@ -16,21 +16,21 @@ namespace LumosLib.Editor
         
         private static void OnEditorFullyLoaded()
         {
-            var name = nameof(LumosLibSettings);
-            
-            if (Resources.Load<LumosLibSettings>(name) != null)
+            var settings = LumosLibSettings.Instance;
+            if (settings != null)
                 return;
 
-            string resourcesDir = Path.Combine(Application.dataPath, "Resources");
-            
-            if (!Directory.Exists(resourcesDir))
-                Directory.CreateDirectory(resourcesDir);
+            string assetPath = $"Assets/{nameof(LumosLibSettings)}.asset";
+            settings = AssetDatabase.LoadAssetAtPath<LumosLibSettings>(assetPath);
 
-            var asset = ScriptableObject.CreateInstance<LumosLibSettings>();
-            string assetPath = $"Assets/Resources/{name}.asset";
+            if (settings == null)
+            {
+                settings = ScriptableObject.CreateInstance<LumosLibSettings>();
+                AssetDatabase.CreateAsset(settings, assetPath);
+                AssetDatabase.SaveAssets();
+            }
 
-            AssetDatabase.CreateAsset(asset, assetPath);
-            AssetDatabase.SaveAssets();
+            LumosLibSettings.Instance = settings;
             AssetDatabase.Refresh();
         }
     }
