@@ -1,15 +1,15 @@
 using System.Collections.Generic;
 
-namespace LumosLib.RPG
+namespace LumosLib
 {
     public class CurrencyHandler
     {
         private readonly Dictionary<int, Currency> _currencies = new();
 
         
-        public void Register(int id, Currency currency)
+        public void Register(Currency currency)
         {
-            _currencies.TryAdd(id, currency);
+            _currencies.TryAdd(currency.ID, currency);
         }
 
 

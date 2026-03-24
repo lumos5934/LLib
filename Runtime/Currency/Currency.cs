@@ -1,20 +1,22 @@
 using System;
 
-namespace LumosLib.RPG
+namespace LumosLib
 {
     public class Currency
     {
+        public int ID { get; }
         public long Value { get; private set; }
 
         public event Action<long, long> OnChanged;
 
         
-        public Currency()
+        public Currency(int id)
         {
+            ID = id;
         }
 
         
-        public Currency(long initialValue) : this()
+        public Currency(int id, long initialValue) : this(id)
         {
             Value = Math.Max(0, initialValue);
         }
