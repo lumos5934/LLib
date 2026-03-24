@@ -31,7 +31,7 @@
 * [ Pool ](#Pool)
 * [ Resource ](#Resource)
 * [ Save ](#Save)
-* [ Tutorial ](https://www.notion.so/Tutorial-2df3966a742c808b860be13cf2e99a08?source=copy_link)
+* [ Tutorial ](#Tutorial)
 * [ TestWindow ](https://www.notion.so/Test-Editor-2df3966a742c80c3af6ac96904d157da?source=copy_link)
 * [ Popup ](https://www.notion.so/UI-2df3966a742c80f38990cbc42a6d1b49?source=copy_link)
 
@@ -264,8 +264,7 @@ IGameSettings Settings => Services.Get<IGameSettings>();
 
 ### Input
 
-**PointerManager**
-
+**PointerManager** <br>
 `Create / [LumosLib] / Prefabs / Manager / Pointer`
 
 InputSystem 을 통해 메인 클릭에 대한 처리를 담당.
@@ -425,7 +424,7 @@ public async void Awake()
 
 ### Pool
 
-**PoolManager**
+**PoolManager** <br>
 `Create / [LumosLib] / Prefabs / Manager / Pool`
 
 유니티 오브젝트 풀을 래핑한 형태의 관리자. 추후 변경 가능성 높음.
@@ -494,7 +493,7 @@ public class Shooter : MonoBehaviour
 }
 
 ```
-
+<br>
 
 [🎞️튜토리얼](https://youtu.be/uHugRk2FvsE?si=enZf8aUPJZqyzbuO)
 
@@ -505,7 +504,7 @@ public class Shooter : MonoBehaviour
 
 ### Resource
 
-**ResourceManager**
+**ResourceManager** <br>
 `Create / [LumosLib] / Prefabs / Manager / Resource`
 
 리소스를 미리 캐싱해놓고 참조의 편의를 돕는 관리자. 어드레서블과의 교체를 염두해 label 과 key 를 사용해 조회하고 현재 label 은 폴더이름을 이용.
@@ -536,8 +535,7 @@ public class Shooter : MonoBehaviour
 
 ### Save
 
-**SaveManager**
-
+**SaveManager** <br>
 `Create / [LumosLib] / Prefabs / Manager / Save`
 
 여러가지 저장소 타입을 할 수 있도록 `BaseDataSource` 를 통해 지정하고 해당 저장소로 저장을 담당. `BaseDataSource`를 상속받는 SO 를 구현해 원하는 저장소를 구현 할 수 있음.
