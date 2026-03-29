@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Numerics;
 
 namespace LumosLib
 {
@@ -7,29 +8,32 @@ namespace LumosLib
         private readonly Dictionary<int, Currency> _currencies = new();
 
         
-        public void Register(Currency currency)
-        {
-            _currencies.TryAdd(currency.ID, currency);
-        }
-
-
-        public void Unregister(int id)
-        {
-            _currencies.Remove(id);
-        }
-
-        
         public Currency Get(int id)
         {
-            return _currencies.GetValueOrDefault(id);
+            if (_currencies.TryGetValue(id, out var currency))
+            {
+                return currency;
+            }
+
+            return new Currency(id);
         }
 
+
+        public BigInteger GetValue(int id)
+        {
+            return Get(id).Value;
+        }
+
+
+        public void SetValue(int id, BigInteger value)
+        {
+            Get(id).Set(value);
+        }
         
-        public bool Consume(int id, long amount)
+        
+        public bool Consume(int id, BigInteger amount)
         {
             var currency = Get(id);
-            if (currency == null) 
-                return false;
             
             if (currency.Value >= amount)
             {
@@ -42,11 +46,9 @@ namespace LumosLib
         }
 
 
-        public void Add(int id, long amount)
+        public void Add(int id, BigInteger amount)
         {
             var currency = Get(id);
-            if (currency == null)
-                return;
             
             currency.Add(amount);
         }
