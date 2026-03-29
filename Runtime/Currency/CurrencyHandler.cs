@@ -10,12 +10,13 @@ namespace LumosLib
         
         public Currency Get(int id)
         {
-            if (_currencies.TryGetValue(id, out var currency))
+            if (!_currencies.TryGetValue(id, out var currency))
             {
-                return currency;
+                currency =  new Currency(id);
+                _currencies.Add(id, currency);
             }
 
-            return new Currency(id);
+            return currency;
         }
 
 
