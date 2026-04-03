@@ -2,8 +2,8 @@
 {
     public class BaseData
     {
-        public string Name { get; private set; }
-        public int ID { get; private set; }
+        public string Name { get; protected set; }
+        public int ID { get; protected set; }
     }
 }
 
