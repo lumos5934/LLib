@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace LLib
 {
-    [CreateAssetMenu(fileName = "Json_DataSource", menuName = "[ LumosLib ]/Scriptable Objects/Data Source/Json")]
+    [CreateAssetMenu(fileName = "Json_DataSource", menuName = "[ LLib ]/Scriptable Objects/Data Source/Json")]
     public class JsonDataSource : BaseDataSource
     {
         [SerializeField] private string _fileName;

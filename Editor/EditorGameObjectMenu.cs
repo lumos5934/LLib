@@ -6,7 +6,7 @@ namespace LLib.Editor
 {
     public class EditorGameObjectMenu
     {
-        [MenuItem("GameObject/[ LumosLib ]/UI/World Button", false, 0)]
+        [MenuItem("GameObject/[ LLib ]/UI/World Button", false, 0)]
         private static void CreateWorldButton(MenuCommand menuCommand)
         {
             CreateNewObject(menuCommand, "WorldButton", new []

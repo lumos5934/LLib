@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -8,151 +6,34 @@ namespace LLib.Editor
 {
     public class TestTool : EditorWindow
     {
-        #region Fields
-
-        private List<ITestToolElement> _elements;
-        private ITestToolElement _selectedElement;
+        private List<BaseTestToolModule> _modules;
+        private BaseTestToolModule _selectedModule;
+        private int _selectedIndex;
+        private TestToolSettingsModule _settingsModule;
         private Vector2 _scrollPos;
         
-        private GUIStyle _titleStyle;
-        private GUIStyle TitleStyle
-        {
-            get
-            {
-                if (_titleStyle == null)
-                {
-                    _titleStyle = new GUIStyle(EditorStyles.boldLabel);
-                    _titleStyle.fontStyle = FontStyle.Bold;
-                    _titleStyle.alignment = TextAnchor.MiddleCenter;
-                    _titleStyle.hover.background = null;
-                    _titleStyle.active.background = null;
-                }
-
-                return _titleStyle;
-            }
-        }
         
-        private GUIStyle _titleShadowStyle;
-        private GUIStyle TitleShadowStyle
-        {
-            get
-            {
-                if (_titleShadowStyle == null)
-                {
-                    _titleShadowStyle = new GUIStyle(EditorStyles.boldLabel);
-                    _titleShadowStyle.fontSize = 25;
-                    _titleShadowStyle.fontStyle = FontStyle.Bold;
-                    _titleShadowStyle.alignment = TextAnchor.MiddleCenter;
-                    _titleShadowStyle.hover.background = null;
-                    _titleShadowStyle.active.background = null;
-                }
-
-                return _titleShadowStyle;
-            }
-        }
+        private TestToolSettings Settings => TestToolSettings.instance;
         
-        private GUIStyle _mainRectStyle;
-        private GUIStyle MainRectStyle
-        {
-            get
-            {
-                if (_mainRectStyle == null)
-                {
-                    _mainRectStyle = new GUIStyle("box")
-                    {
-                        padding = new RectOffset(0, 0, 0, 0),
-                        margin = new RectOffset(0, 0, 0, 0),
-                        stretchWidth = true,
-                        stretchHeight = true,
-                    };
-                }
-            
-                return _mainRectStyle;
-            }
-        }
-        private GUIStyle _categorySideRectStyle;
-        private GUIStyle CategorySideRectStyle
-        {
-            get
-            {
-                if (_categorySideRectStyle == null)
-                {
-                    _categorySideRectStyle = new GUIStyle()
-                    {
-                        padding = new RectOffset(2, 0, 0, 3),
-                        margin = new RectOffset(0, 0, 0, 0)
-                    };
-                }
-
-                return _categorySideRectStyle;
-            }
-        }
-        private GUIStyle _contentRectStyle;
-        private GUIStyle ContentRectStyle
-        {
-            get
-            {
-                if (_contentRectStyle == null)
-                {
-                    _contentRectStyle = new GUIStyle("box")
-                    {
-                        margin = new RectOffset(0, 1, 1, 0),
-                    };
-                }
-              
-                return _contentRectStyle;
-            }
-        }
-
-        private GUIStyle _btnStyle;
-        private GUIStyle BtnStyle
-        {
-            get
-            {
-                if (_btnStyle == null)
-                {
-                    _btnStyle = new GUIStyle(EditorStyles.miniButtonMid)
-                    {
-                        margin = new RectOffset(0, 0, 0, 0),
-                        padding = new RectOffset(0,0,0,0),
-                        overflow = new RectOffset(0,0,0,0),
-                        fontStyle = FontStyle.Bold,
-                        alignment = TextAnchor.MiddleCenter,
-                        stretchWidth = true,
-                    };
-                }
-
-                return _btnStyle;
-            }
-        }
-        private GUIStyle _noticeStyle;
-        private GUIStyle NoticeStyle
-        {
-            get
-            {
-                if (_noticeStyle == null)
-                {
-                    _noticeStyle = new GUIStyle()
-                    {
-                        alignment = TextAnchor.MiddleCenter,
-                        fontSize = 18,
-                        fontStyle = FontStyle.Bold,
-                        padding = new RectOffset(20, 20, 20, 20),
-                    };
-                    
-                    _noticeStyle.normal.textColor = new Color(0.7f, 0.7f, 0.7f);
-                }
-            
-                return _noticeStyle;
-            }
-        }
-
-        private LumosLibSettings Settings => LumosLibSettings.Instance;
-
-        #endregion
-
         
-        [MenuItem("Window/[ Lumos Lib ]/Test Tool", false, int.MinValue)]
+        private TestToolSettingsModule SettingsModule
+        {
+            get
+            {
+                if (_settingsModule == null)
+                {
+                    _settingsModule = CreateInstance<TestToolSettingsModule>();
+                    _settingsModule.Title = "Settings";
+                    _settingsModule.IsRunTimeOnly = false;
+                }   
+                
+                return _settingsModule;
+            }
+        }
+
+
+
+        [MenuItem("Window/[ LLib ]/Test Tool", false, int.MinValue)]
         public static void Open()
         {
             var window = GetWindow<TestTool>();
@@ -163,25 +44,10 @@ namespace LLib.Editor
         
         private void OnEnable()
         {
-            _elements = TypeCache
-                .GetTypesDerivedFrom<ITestToolElement>()
-                .Where(t => !t.IsAbstract)
-                .Select(t => Activator.CreateInstance(t) as ITestToolElement)
-                .OrderBy(t => t.Priority)
-                .ToList();
+            SettingsModule.Init();
             
-            _elements.ForEach(i => i.OnEnable(this));
-            
-            
-            _titleStyle = null;
-            _titleShadowStyle = null;
-            _mainRectStyle = null;
-            _categorySideRectStyle = null;
-            _contentRectStyle = null;
-            _btnStyle = null;
-            _noticeStyle = null;
-            
-            
+            Settings.InitStyles();
+           
             EditorApplication.update += Repaint;
         }
 
@@ -196,97 +62,77 @@ namespace LLib.Editor
         {
             if (Settings == null)
                 return;
+
+            _modules = Settings.Modules;
             
+            DrawTitle();
+            DrawUnderline(GUILayoutUtility.GetLastRect());
             
-            _scrollPos = EditorGUILayout.BeginScrollView(_scrollPos);
+            Rect mainRect = EditorGUILayout.BeginVertical(Settings.MainRectStyle);
             {
-                DrawTop();
-            
-                GUI.backgroundColor = Color.black;
-                Rect mainRect = EditorGUILayout.BeginVertical(MainRectStyle);
+                EditorGUI.DrawRect(mainRect, Settings.BottomBackgroundColor);
+                DrawGrid(mainRect);
+             
+                _scrollPos = EditorGUILayout.BeginScrollView(_scrollPos);
                 {
-                    GUI.backgroundColor = Color.white;
-                
-                   if (_selectedElement == null)
-                   {
-                       DrawCategory(mainRect);
-                   }
+                    if (_selectedModule == null)
+                    {
+                        EditorGUILayout.Space(2);
+                        DrawCategoryButtons();
+                    }
                     else
                     {
                         EditorGUILayout.BeginHorizontal();
                         {
-                            var categorySideRect = EditorGUILayout.BeginVertical(CategorySideRectStyle, GUILayout.Width(Settings.ButtonWidth), GUILayout.ExpandHeight(true));
+                            EditorGUILayout.BeginVertical(Settings.CategorySideRectStyle, GUILayout.Width(Settings.CategoryRectWidth), GUILayout.ExpandHeight(true));
                             {
-                                DrawCategory(categorySideRect);
+                                EditorGUILayout.Space(2);
+                                DrawCategoryButtons();
                             
                                 EditorGUILayout.EndVertical();
                             }
 
-                            GUI.backgroundColor = Settings.ContentsBackgroundColor;
-                            Rect contentsRect = EditorGUILayout.BeginVertical(ContentRectStyle,
-                                GUILayout.ExpandHeight(true), GUILayout.ExpandWidth(true));
+                            Rect contentsRect = EditorGUILayout.BeginVertical(Settings.ContentRectStyle, GUILayout.ExpandHeight(true), GUILayout.ExpandWidth(true));
                             {
-                                GUI.backgroundColor = Color.white;
+                                EditorGUI.DrawRect(contentsRect, Settings.ContentsBackgroundColor);
 
                                 DrawContents(contentsRect);
-                            
+                                EditorGUILayout.Space(20);
                                 EditorGUILayout.EndVertical();
                             }
                         
                             EditorGUILayout.EndHorizontal();
                         }
                     }
-                   
-                    EditorGUILayout.EndVertical();
+                    
+                    EditorGUILayout.EndScrollView();
                 }
-                EditorGUILayout.EndScrollView();
+                   
+                EditorGUILayout.EndVertical();
             }
+            
+         
         }
 
         #region TOP
-
-        private void DrawTop()
-        {
-            TitleStyle.fontSize = Settings.TitleFontSize;
-            
-            Color titleColor = Settings.TitleFontColor;
-            TitleStyle.normal.textColor = titleColor;
-            TitleStyle.hover.textColor = titleColor;
-            TitleStyle.active.textColor = titleColor;
-            TitleStyle.focused.textColor = titleColor;
-            
-            
-            TitleShadowStyle.fontSize = Settings.TitleFontSize;
-            
-            Color titleShadowColor = Settings.TitleFontShadowColor;
-            TitleShadowStyle.normal.textColor = titleShadowColor;
-            TitleShadowStyle.hover.textColor = titleShadowColor;
-            TitleShadowStyle.active.textColor = titleShadowColor;
-            TitleShadowStyle.focused.textColor = titleShadowColor;
-            
-            DrawTitle();
-            DrawUnderline(GUILayoutUtility.GetLastRect());
-        }
-        
 
         private void DrawTitle()
         {
             EditorGUILayout.Space(20f);
 
             GUIContent content = EditorGUIUtility.TrTextContent("TEST TOOL");
-            Rect rect = GUILayoutUtility.GetRect(content, TitleStyle);
+            Rect rect = GUILayoutUtility.GetRect(content, Settings.TitleStyle);
 
-            var shadowStyle = TitleShadowStyle;
-            GUI.Label(new Rect(rect.x + 2.5f, rect.y + 2.5f, rect.width, rect.height), content, shadowStyle);
-            GUI.Label(rect, content, TitleStyle);
+            
+            GUI.Label(new Rect(rect.x + 2.5f, rect.y + 2.5f, rect.width, rect.height), content, Settings.TitleShadowStyle);
+            GUI.Label(rect, content, Settings.TitleStyle);
 
             EditorGUILayout.Space(20f);
         }
         
-        
         private void DrawUnderline(Rect rect)
         {
-            float lineY = rect.yMax - 1.5f;
+            float lineY = rect.yMax - 2.5f;
             
             var lineColor = Settings.TitleUnderLineColor;
             var lineColorShadowColor = lineColor * 0.4f;
@@ -305,74 +151,65 @@ namespace LLib.Editor
 
         #region CATEGORY
 
-        private void DrawCategory(Rect mainRect)
-        {
-            DrawGrid(mainRect);
-            EditorGUILayout.Space(2);
-            DrawCategoryButtons();
-        }
-       
         private void DrawCategoryButtons()
         {
-            BtnStyle.normal.textColor = Settings.ButtonFontNormalColor;
-            BtnStyle.hover.textColor = Settings.ButtonFontHoverColor;
-            BtnStyle.fixedHeight = Settings.ButtonHeight;
-            BtnStyle.fontSize = Settings.ButtonFontSize;
-            
-            for (int i = 0; i < _elements.Count; i++)
+            for (int i = 0; i <= _modules.Count; i++)
             {
-                var target = _elements[i];
-
-                GUI.backgroundColor = (_selectedElement == target)
-                    ? Settings.ButtonSelectedColor
-                    : Settings.ButtonNormalColor;
+                BaseTestToolModule target = (i == _modules.Count) ? SettingsModule : _modules[i];
+                if (target == null) 
+                    continue;
 
                 var label = target.Title.ToUpper();
-                
-                if (GUILayout.Button(label, BtnStyle))
+
+                if (_selectedModule == target && _selectedIndex == i)
                 {
-                    _selectedElement = _selectedElement == target ? null : target;
-                }
+                    Rect btnRect = GUILayoutUtility.GetRect(new GUIContent(label), Settings.BtnSelectedStyle);
+
+                    EditorGUI.DrawRect(btnRect, Settings.ContentsBackgroundColor);
                 
-                Rect rect = GUILayoutUtility.GetLastRect();
-                
-                if (_selectedElement == target)
-                {
-                    rect.width -= 2;
-                    rect.height -= 2;
-                    rect.center -= new Vector2(0f, -1f);
+                    GUI.Label(btnRect, label, Settings.BtnSelectedStyle);
 
                     var outlineColor = Settings.ButtonHighlightColor;
-                    
-                    Handles.color = outlineColor;
-                    // 테두리만 컬러
-                    Handles.DrawSolidRectangleWithOutline(rect, 
-                        new Color(0, 0, 0, 0), 
-                        outlineColor);
+                    float thickness = 2f;
+
+                    EditorGUI.DrawRect(new Rect(btnRect.x, btnRect.y, btnRect.width, thickness), outlineColor);
+                    EditorGUI.DrawRect(new Rect(btnRect.x, btnRect.yMax - thickness, btnRect.width, thickness), outlineColor);
+                    EditorGUI.DrawRect(new Rect(btnRect.x, btnRect.y, thickness, btnRect.height), outlineColor);
+                    EditorGUI.DrawRect(new Rect(btnRect.xMax - thickness, btnRect.y, thickness, btnRect.height), outlineColor);
+
+                    if (GUI.Button(btnRect, "", GUIStyle.none))
+                    {
+                        _selectedModule = null;
+                    }
+                }
+                else
+                {
+                    GUI.backgroundColor = Settings.ButtonNormalColor;
+            
+                    if (GUILayout.Button(label, Settings.BtnStyle))
+                    {
+                        _selectedModule = target;
+                        _selectedIndex = i;
+                    }
+            
+                    GUI.backgroundColor = Color.white;
                 }
             }
-            
-            GUI.backgroundColor = Color.white;
         }
         
         private void DrawGrid(Rect rect)
         {
             Color gridColor = new Color(1, 1, 1, 0.03f); 
-            Handles.BeginGUI();
-    
-            Handles.color = gridColor;
-            
+
             for (float i = rect.y; i < rect.yMax; i += 15)
             {
-                Handles.DrawLine(new Vector2(rect.x, i), new Vector2(rect.xMax, i));
+                EditorGUI.DrawRect(new Rect(rect.x, i, rect.width, 1f), gridColor);
             }
 
             for (float i = rect.x; i < rect.xMax; i += 15)
             {
-                Handles.DrawLine(new Vector2(i, rect.y), new Vector2(i, rect.yMax));
+                EditorGUI.DrawRect(new Rect(i, rect.y, 1f, rect.height), gridColor);
             }
-
-            Handles.EndGUI();
         }
         
         #endregion
@@ -381,26 +218,26 @@ namespace LLib.Editor
 
         private void DrawContents(Rect contentsRect)
         {
-            if (_selectedElement != null)
+            if (_selectedModule != null)
             {
-                if (_selectedElement.IsRunTimeOnly && 
+                if (_selectedModule.IsRunTimeOnly && 
                     !Application.isPlaying)
                 {
                     GUILayout.FlexibleSpace();
                     string message = "⚠️ RUNTIME ONLY";
-                    GUILayout.Label(message, NoticeStyle);
+                    GUILayout.Label(message, Settings.NoticeStyle);
                     GUILayout.FlexibleSpace();
                 }
                 else
                 {
-                    _selectedElement.OnGUI();
+                    _selectedModule.OnGUI();
                 }
             }
             
-            HandleElementMenu(contentsRect, _selectedElement);
+            HandleModuleMenu(contentsRect, _selectedModule);
         }
 
-        private void HandleElementMenu(Rect rect, ITestToolElement element)
+        private void HandleModuleMenu(Rect rect, BaseTestToolModule module)
         {
             Event current = Event.current;
         
@@ -408,7 +245,7 @@ namespace LLib.Editor
             {
                 GenericMenu menu = new GenericMenu();
             
-                menu.AddItem(new GUIContent($"{element.GetType().Name} Script"), false, () => OpenElementScript(element));
+                menu.AddItem(new GUIContent($"{module.GetType().Name} Script"), false, () => OpenModuleScript(module));
             
                 menu.ShowAsContext();
             
@@ -417,9 +254,9 @@ namespace LLib.Editor
         }
         
         
-        private void OpenElementScript(ITestToolElement element)
+        private void OpenModuleScript(BaseTestToolModule module)
         {
-            var type = element.GetType();
+            var type = module.GetType();
             
             string[] guids = AssetDatabase.FindAssets($"{type.Name} t:MonoScript");
             

@@ -30,7 +30,7 @@ namespace LLib
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Init()
         {
-            var libSettings = LumosLibSettings.Instance;
+            var libSettings = LLibSettings.Instance;
             if (libSettings == null || !libSettings.UsePreInitialize)
             {
                 _initBarrier.TrySetResult();
@@ -50,7 +50,7 @@ namespace LLib
         }
 
         
-        private static async UniTask Initialize(LumosLibSettings libSettings)
+        private static async UniTask Initialize(LLibSettings libSettings)
         {
             var initSW = System.Diagnostics.Stopwatch.StartNew();
             
@@ -143,7 +143,7 @@ namespace LLib
         }
 
         
-        private static void Preload(LumosLibSettings settings)
+        private static void Preload(LLibSettings settings)
         {
             foreach (var prefab in settings.PreloadObjects)
             {

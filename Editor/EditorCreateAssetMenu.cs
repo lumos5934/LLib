@@ -72,19 +72,19 @@ namespace LLib.Editor
         /// Prefabs
         /// </summary>
         
-        [MenuItem("Assets/Create/[ LumosLib ]/Prefabs/Manager/Resource", false, int.MinValue)]
+        [MenuItem("Assets/Create/[ LLib ]/Prefabs/Manager/Resource", false, int.MinValue)]
         public static void CreateResourceManagerPrefab()
         {
             CreatePrefab<ResourceManager>();
         }
         
-        [MenuItem("Assets/Create/[ LumosLib ]/Prefabs/Manager/Audio", false, int.MinValue)]
+        [MenuItem("Assets/Create/[ LLib ]/Prefabs/Manager/Audio", false, int.MinValue)]
         public static void CreateAudioManagerPrefab()
         {
             CreatePrefab<AudioManager>();
         }
         
-        [MenuItem("Assets/Create/[ LumosLib ]/Prefabs/Manager/Popup", false, int.MinValue)]
+        [MenuItem("Assets/Create/[ LLib ]/Prefabs/Manager/Popup", false, int.MinValue)]
         public static void CreatePopupManagerPrefab()
         {
             CreatePrefab<PopupManager>(obj =>
@@ -97,31 +97,31 @@ namespace LLib.Editor
             });
         }
         
-        [MenuItem("Assets/Create/[ LumosLib ]/Prefabs/Manager/Pool", false, int.MinValue)]
+        [MenuItem("Assets/Create/[ LLib ]/Prefabs/Manager/Pool", false, int.MinValue)]
         public static void CreatePoolManagerPrefab()
         {
             CreatePrefab<PoolManager>();
         }
         
-        [MenuItem("Assets/Create/[ LumosLib ]/Prefabs/Manager/Pointer", false, int.MinValue)]
+        [MenuItem("Assets/Create/[ LLib ]/Prefabs/Manager/Pointer", false, int.MinValue)]
         public static void CreatePointerManagerPrefab()
         {
             CreatePrefab<PointerManager>();
         }
         
-        [MenuItem("Assets/Create/[ LumosLib ]/Prefabs/Manager/Tutorial", false, int.MinValue)]
+        [MenuItem("Assets/Create/[ LLib ]/Prefabs/Manager/Tutorial", false, int.MinValue)]
         public static void CreateTutorialManagerPrefab()
         {
             CreatePrefab<TutorialManager>();
         }
         
-        [MenuItem("Assets/Create/[ LumosLib ]/Prefabs/Manager/Save", false, int.MinValue)]
+        [MenuItem("Assets/Create/[ LLib ]/Prefabs/Manager/Save", false, int.MinValue)]
         public static void CreateSaveManagerPrefab()
         {
             CreatePrefab<SaveManager>();
         }
         
-        [MenuItem("Assets/Create/[ LumosLib ]/Prefabs/Audio Player", false, int.MinValue)]
+        [MenuItem("Assets/Create/[ LLib ]/Prefabs/Audio Player", false, int.MinValue)]
         public static void CreateAudioPlayerPrefab()
         {
             CreatePrefab<AudioPlayer>();
