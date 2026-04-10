@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -13,6 +14,7 @@ namespace LLib
         private static int _failCount;
         private static bool _isInitialized;
         private static UniTaskCompletionSource _initBarrier;
+        private static Stopwatch _initStopwatch;
 
 
         public static bool IsInitialized => _isInitialized;
@@ -23,7 +25,16 @@ namespace LLib
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Boot()
         {
+            _initStopwatch = Stopwatch.StartNew();
+            
             _initBarrier = new UniTaskCompletionSource();
+            
+            var libSettings = LLibSettings.Instance;
+            if (libSettings == null)
+                return;
+            
+            Preload(libSettings);
+            DebugUtil.Log("", $"------ PRELOAD FINISH ({_initStopwatch.ElapsedMilliseconds:F2} ms)");
         }
         
         
@@ -37,7 +48,7 @@ namespace LLib
                 return;
             }
 
-            Initialize(libSettings).Forget();
+            Initialize().Forget();
         }
         
         
@@ -50,23 +61,15 @@ namespace LLib
         }
 
         
-        private static async UniTask Initialize(LLibSettings libSettings)
+        private static async UniTask Initialize()
         {
-            var initSW = System.Diagnostics.Stopwatch.StartNew();
-            
-            
-            Preload(libSettings);
-            DebugUtil.Log("", $"------ PRELOAD FINISH ({initSW.ElapsedMilliseconds:F2} ms)");
-
-            
-            
             var allInitializable = Object.FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None)
                 .OfType<IPreInitializable>()
                 .ToList();
             
             _maxCount = allInitializable.Count;
             
-            initSW = System.Diagnostics.Stopwatch.StartNew();
+            _initStopwatch = Stopwatch.StartNew();
             
             DebugUtil.Log("", $"------ INITIALIZE START (TOTAL : {_maxCount})");
             
@@ -83,7 +86,7 @@ namespace LLib
             
             foreach (var initializable in allInitializable)
             {
-                var task = InitializeTarget(context, initializable, initSW);
+                var task = InitializeTarget(context, initializable, _initStopwatch);
                 taskList.Add(task);
             }
             
