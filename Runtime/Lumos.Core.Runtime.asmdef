@@ -5,7 +5,8 @@
         "TriInspector",
         "Unity.InputSystem",
         "UniTask",
-        "Unity.RenderPipelines.Universal.Runtime"
+        "Unity.RenderPipelines.Universal.Runtime",
+        "Unity.Cinemachine"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
