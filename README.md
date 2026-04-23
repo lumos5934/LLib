@@ -1,6 +1,6 @@
-# ✨lumos-library-core
-유니티 기반 & 에셋에서 자주 사용되는 요소, <br>
-또는 확장하는 기능의 스크립트를 모아놓아 개발의 생산성 상승을 위한 유니티 패키지
+# ✨lumos-library
+유니티에서 자주 사용 하는 기능, <br>
+또는 확장하는 기능을 모아 놓아 개발의 생산성 상승을 위한 유니티 패키지
 
 <br>
 
@@ -493,86 +493,32 @@ public class Shooter : MonoBehaviour
 
 ### Input
 
-**PointerManager** <br>
-`Create / [LumosLib] / Prefabs / Manager / Pointer`
-
-InputSystem 을 통해 메인 클릭에 대한 처리를 담당.
+**PointerSystem** <br>
+InputSystem 을 통해 메인 포인터에 대한 처리를 담당. 
+위치와 클릭 여부를 나타내는 두 InputActionReference 를 주입하여 사용.
 
 <table>
   <tr>
-    <td><b>PosInputReference<b></td>
-    <td>포인터의 위치를 나타낼 InputActionReference</td>
+    <td><b>IsDown<b></td>
+    <td>포인터가 눌렸는지 여부</td></td>
   </tr>
   <tr>
-    <td><b>ClickInputReference<b></td>
-    <td>포인터의 입력을 나타낼 InputActionReference</td>
-  </tr>
-  <tr>
-    <td><b>IsPressed</td>
+    <td><b>IsHold<b></td>
     <td>포인터가 눌려있는지 여부</td>
   </tr>
+  <tr>
+    <td><b>IsUp</td>
+    <td>포인터가 떼져 있는지 여부</td>
+  </tr>
       <tr>
-    <td><b>ScreenPosition</td>
+    <td><b>Position</td>
     <td>스크린 기준 포인터 위치</td>
   </tr>
       <tr>
-    <td><b>WorldPosition</td>
-    <td>월드 기준 포인터 위치</td>
-  </tr>
-       <tr>
-    <td><b>GetHitCollider()</td>
-    <td>레이캐스트를 통한 포인터 위치 콜라이더 검출</td>
-  </tr>
-      <tr>
-    <td><b>SetCamera()</td>
-    <td>수동 카메라 등록 필요시 등록</td>
+    <td><b>IsOverEventSystem</td>
+    <td>이벤트 시스템에 트리거 되는지 여부</td>
   </tr>
 </table>
-
-
-<br>
-<br>
-
-**PointerDownEvent & UpEvent**
-
-<table>
-  <tr>
-    <td><b>ScreenPosition<b></td>
-    <td>이벤트 발생 기준 포인터의 스크린 위치</td>
-  </tr>
-  <tr>
-    <td><b>WorldPosition<b></td>
-    <td>이벤트 발생 기준 포인터의 월드 위치</td>
-  </tr>
-  <tr>
-    <td><b>HitCollider</td>
-    <td>이벤트 발생 기준 검출된 포인터 위치의 콜라이더</td>
-  </tr>
-</table>
-
-<br>
-<br>
-
-```csharp
-
-EventBus<PointerDownEvent>.Subscribe(OnPointerDown);
-EventBus<PointerDownEvent>.Unsubscribe(OnPointerDown);
-
-private void OnPointerDown(PointerDownEvent evt)
-{
-    // 1. 클릭된 위치의 콜라이더 확인
-    if (evt.HitCollider != null)
-    {
-        Debug.Log($"클릭된 오브젝트: {evt.HitCollider.name}");
-        Debug.Log($"월드 좌표: {evt.WorldPosition}");
-    }
-    else
-    {
-        Debug.Log("허공을 클릭했습니다.");
-    }
-}
-
-```
 
 
 <br>
