@@ -7,6 +7,7 @@
 ### ℹ️의존성
 
 * **URP**
+* **Cinemahcine**
 * **Newtonsoft.Json (자동 설치)**
 * [ UniTask ](https://github.com/Cysharp/UniTask?tab=readme-ov-file#upm-package)
 * [ Tri-Inspector ](https://github.com/codewriter-packages/Tri-Inspector?tab=readme-ov-file)
