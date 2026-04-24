@@ -28,6 +28,7 @@
 * [StatResource](#StatResource)
 * [UnitEffect](#UnitEffect)
 * [Buff](#Buff)
+* [Placement](#Placement)
 
 <br>
 <br>
@@ -1065,6 +1066,43 @@ public class CombatTest : MonoBehaviour
     }
 }
 ```
+
+<br>
+<br>
+
+
+---
+### Placement
+
+**PlacementSystem** <br>
+배치물을 설치, 이동, 파괴하는 클래스. 필요로 하는곳에서 생성하여 사용해야 하고 해당 타겟이 `IPlaceable` 을 구현하고 있어야 하며, 씬에 사용하려는 `PlaceableGrid` 이 존재해야함.
+`PlaceableGrid`를 셀단위로 계산하여 점유하는 형태로 구현.
+
+<table>
+  <tr>
+    <td><b>Begin<b></td>
+      <td>타겟이 될 Grid 와 Placeable 을 이용해 배치를 시작</td>
+  </tr>
+        <tr>
+    <td><b>Move<b></td>
+      <td>타겟이 된 Placeable 을 이동</td>
+  </tr>
+       <tr>
+    <td><b>TryPlace<b></td>
+      <td>해당 Grid 의 조건 확인 후 배치</td>
+  </tr>
+      <tr>
+    <td><b>Remove<b></td>
+      <td>현재 선택된 `Placeable` 을 파괴</td></td>
+  </tr>
+</table>
+
+<br>
+<br>
+
+
+**PlaceableGrid** <br>
+셀 단위로 나뉘어 해당 점유 된 셀을 관리하는 데이터 관리자. `PlacementSystem`에 의해 동작하고 `Scan` 매서드를 통해 특정 레이어에 해당하는 콜라이더를 셀 단위로 점유 시킬 수 있음.
 
 <br>
 <br>
