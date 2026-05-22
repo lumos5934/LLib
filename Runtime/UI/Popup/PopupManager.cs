@@ -13,7 +13,7 @@ namespace LLib
         [Header("Sorting")]
         [SerializeField] private string _layer;
         [SerializeField] private int _minOrder = 1000;
-        [SerializeField, Min(1)] private int _orderSpacing = 1;
+        [SerializeField, Min(2)] private int _orderSpacing = 2;
         
         [Space(15f)]
         [SerializeField] private Canvas _dimmerCanvas;
@@ -211,7 +211,6 @@ namespace LLib
         private void UpdateOrders()
         {
             int dimmerOrder = -1;
-            float dimmerDistance = -1;
             
             for (int i = 0; i < _openedPopups.Count; i++)
             {
@@ -222,8 +221,7 @@ namespace LLib
                 
                 if (target.IsModal)
                 {
-                    dimmerOrder = order;
-                    dimmerDistance = target.Canvas.planeDistance - 1;
+                    dimmerOrder = order - 1;
                 }
             }
             
@@ -233,7 +231,6 @@ namespace LLib
                 {
                     _dimmerCanvas.gameObject.SetActive(true);
                     _dimmerCanvas.sortingOrder = dimmerOrder;
-                    _dimmerCanvas.planeDistance = dimmerDistance;
                 }
                 else
                 {
