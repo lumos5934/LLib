@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
-using TriInspector;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
@@ -11,16 +10,18 @@ namespace LLib
 {
     public class PopupManager : MonoBehaviour, IPreInitializable
     {
-        [InfoBox("Requirement : IResourceManager")]
-        [SerializeField] private int _startSortingOrder;
+        [SerializeField] private string _sortingLayer;
+        [SerializeField] private int _minSortingOrder = 1000;
         [SerializeField] private Canvas _dimmerCanvas;
+
+
+        private const int OrderSpacing = 10; 
         
-        private IResourceManager _resourceMgr;
-        private Dictionary<Type, UIPopup> _popupPrefabDict = new();
-        private Dictionary<Type, UIPopup> _popupCache = new();
+        private Dictionary<Type, UIPopup> _prefabsByType = new();
+        private Dictionary<Type, UIPopup> _instancesByType = new();
         private List<UIPopup> _openedPopups = new();
         private Camera _camera;
-
+        
         
         private void Awake()
         {
@@ -28,41 +29,22 @@ namespace LLib
         }
         
         
-        public async UniTask<bool> InitAsync(PreInitContext ctx)
+        public UniTask<bool> InitAsync(PreInitContext ctx)
         {
-            _resourceMgr = Services.Get<IResourceManager>();
-            
-            var resourceInit = _resourceMgr as IPreInitializable;
-            if (resourceInit == null)
-                return false;
-            
-            var result = await ctx.GetAsync(resourceInit);
-            if (result == null) 
-                return false;
-            
-
             _camera = GetComponentInChildren<Camera>();
             if (_camera == null)
-                return false;
-            
-            _camera.cullingMask = LayerMask.GetMask("UI");
-            _camera.clearFlags = CameraClearFlags.Depth;
+                return UniTask.FromResult(false);
 
+            
+            _camera.clearFlags = CameraClearFlags.Depth;
 
             if (_dimmerCanvas != null)
             {
+                _dimmerCanvas.sortingLayerName = _sortingLayer;
                 _dimmerCanvas.worldCamera = _camera;
                 _dimmerCanvas.gameObject.SetActive(false);
             }
             
-            
-            var prefabs  = _resourceMgr.GetAll<UIPopup>("");
-            
-            foreach (var prefab in prefabs)
-            {
-                _popupPrefabDict[prefab.GetType()] = prefab;
-            }
-
             UpdateCameraStack();
             
             SceneManager.sceneLoaded += (scene, mode) =>
@@ -70,75 +52,87 @@ namespace LLib
                 UpdateCameraStack();
             };
 
-            return true;
-        }
-        
-        
-        internal void Add(UIPopup popup)
-        {
-            var type = popup.GetType();
-            _popupCache.TryAdd(type, popup);
+            return UniTask.FromResult(true);
         }
 
         
-        internal void Remove(UIPopup popup)
+        public void RegisterPrefab<T>(T prefab) where T : UIPopup
         {
-            var type = popup.GetType();
-            if (_popupCache.Remove(type))
+            _prefabsByType[typeof(T)] = prefab;
+        }
+
+        
+        public void UnregisterPrefab<T>() where T : UIPopup
+        {
+            var type = typeof(T);
+            _prefabsByType.Remove(type);
+        
+            if (_instancesByType.TryGetValue(type, out var instance))
             {
+                if (instance != null)
+                {
+                    _openedPopups.Remove(instance); 
+                    Destroy(instance.gameObject);
+                }
+                
+                _instancesByType.Remove(type);
                 UpdateOrders();
             }
         }
-        
+
         
         private T Get<T>() where T : UIPopup
         {
-            var type = typeof(T);
-
-            if (_popupCache.TryGetValue(type, out var containsPopup))
+            if (_instancesByType.TryGetValue(typeof(T), out var containsPopup))
             {
                 return containsPopup as T;
             }
-            else
-            {
-                _popupPrefabDict.TryGetValue(type, out UIPopup resource);
-                if (resource == null)
-                    return null;
+            
+            return CreateInstance<T>();
+        }
 
-                var newPopup = Instantiate(resource);
-                newPopup.Init();
-                
-                if (newPopup.IsGlobal)
-                {
-                    newPopup.transform.SetParent(transform);
-                }
-                
-                return newPopup as T;
-            }
+        
+        private T CreateInstance<T>() where T : UIPopup
+        {
+            _prefabsByType.TryGetValue(typeof(T), out UIPopup prefab);
+            if (prefab == null)
+                return null;
+
+            var newPopup = Instantiate(prefab, transform);
+            newPopup.Canvas.sortingLayerName = _sortingLayer;
+            newPopup.gameObject.SetActive(false);
+            newPopup.Init();
+
+            _instancesByType[typeof(T)] = newPopup; 
+
+            return newPopup as T;
         }
 
         
         public T Open<T>() where T : UIPopup
         {
             var popup = Get<T>();
+            if (popup == null)
+                return null;
             
             OnOpen(popup);
-            
             popup.Open();
             
             return popup;
         }
 
-
+        
         private void OnOpen(UIPopup popup)
         {
             if (_openedPopups.Contains(popup))
             {
                 if (_openedPopups[^1] == popup)
+                {
+                    UpdateOrders();
                     return;
+                }
 
                 _openedPopups.Remove(popup);
-                _openedPopups.Add(popup);
             }
             else
             {
@@ -146,7 +140,6 @@ namespace LLib
             }
             
             _openedPopups.Add(popup);
-            
             UpdateOrders();
         }
 
@@ -172,13 +165,9 @@ namespace LLib
             {
                 if (_openedPopups[i] is T popup)
                 {
-                    int index = _openedPopups.IndexOf(popup);
-                    if (index < 0)
-                        return;
-
-                    _openedPopups.RemoveAt(index);
-                    
+                    _openedPopups.RemoveAt(i);
                     popup.Close();
+                    
                     UpdateOrders();
                     return;
                 }
@@ -188,24 +177,27 @@ namespace LLib
         
         public void CloseAll()
         {
-            foreach (var popup in _openedPopups)
+            for (int i = _openedPopups.Count - 1; i >= 0; i--)
             {
-                popup.Close();
+                _openedPopups[i].Close();
             }
             
             _openedPopups.Clear();
+            
+            if (_dimmerCanvas != null)
+            {
+                _dimmerCanvas.gameObject.SetActive(false);
+            }
         }
         
         
         private void UpdateOrders()
         {
             int dimmerOrder = -1;
-            int order = 0;
             
             for (int i = 0; i < _openedPopups.Count; i++)
             {
-                order = _startSortingOrder + (i + 1) * 10;
-                
+                int order = _minSortingOrder + (i + 1) * OrderSpacing;
                 _openedPopups[i].SetOrder(order);
                 
                 if (_openedPopups[i].IsModal)
