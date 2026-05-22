@@ -10,13 +10,14 @@ namespace LLib
 {
     public class PopupManager : MonoBehaviour, IPreInitializable
     {
-        [SerializeField] private string _sortingLayer;
-        [SerializeField] private int _minSortingOrder = 1000;
+        [Header("Sorting")]
+        [SerializeField] private string _layer;
+        [SerializeField] private int _minOrder = 1000;
+        [SerializeField, Min(2)] private int _orderSpacing = 10;
+        
+        [Space(15f)]
         [SerializeField] private Canvas _dimmerCanvas;
 
-
-        private const int OrderSpacing = 10; 
-        
         private Dictionary<Type, UIPopup> _prefabsByType = new();
         private Dictionary<Type, UIPopup> _instancesByType = new();
         private List<UIPopup> _openedPopups = new();
@@ -40,7 +41,7 @@ namespace LLib
 
             if (_dimmerCanvas != null)
             {
-                _dimmerCanvas.sortingLayerName = _sortingLayer;
+                _dimmerCanvas.sortingLayerName = _layer;
                 _dimmerCanvas.worldCamera = _camera;
                 _dimmerCanvas.gameObject.SetActive(false);
             }
@@ -119,7 +120,8 @@ namespace LLib
 
             var newPopup = Instantiate(prefab, transform);
             newPopup.Init();
-            newPopup.Canvas.sortingLayerName = _sortingLayer;
+            newPopup.Canvas.worldCamera = _camera;
+            newPopup.Canvas.sortingLayerName = _layer;
             newPopup.gameObject.SetActive(false);
 
             _instancesByType[typeof(T)] = newPopup; 
@@ -152,10 +154,6 @@ namespace LLib
                 }
 
                 _openedPopups.Remove(popup);
-            }
-            else
-            {
-                popup.SetCamera(_camera);
             }
             
             _openedPopups.Add(popup);
@@ -216,7 +214,7 @@ namespace LLib
             
             for (int i = 0; i < _openedPopups.Count; i++)
             {
-                int order = _minSortingOrder + (i + 1) * OrderSpacing;
+                int order = _minOrder + (i + 1) * _orderSpacing;
                 _openedPopups[i].SetOrder(order);
                 
                 if (_openedPopups[i].IsModal)
