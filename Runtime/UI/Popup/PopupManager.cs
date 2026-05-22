@@ -56,11 +56,15 @@ namespace LLib
         }
 
         
-        public void RegisterPrefab<T>(T prefab) where T : UIPopup
+        public void RegisterPrefab(UIPopup prefab)
         {
-            _prefabsByType[typeof(T)] = prefab;
-        }
+            if (prefab == null) 
+                return;
 
+            Type type = prefab.GetType(); 
+            _prefabsByType[type] = prefab;
+        }
+        
       
         public void UnregisterPrefab<T>() where T : UIPopup
         {
@@ -70,7 +74,8 @@ namespace LLib
         
         public void UnregisterPrefab(UIPopup prefab)
         {
-            if (prefab == null) return;
+            if (prefab == null) 
+                return;
             
             Type type = prefab.GetType(); 
             UnregisterPrefab(type);
