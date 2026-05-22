@@ -13,7 +13,7 @@ namespace LLib
         [Header("Sorting")]
         [SerializeField] private string _layer;
         [SerializeField] private int _minOrder = 1000;
-        [SerializeField, Min(2)] private int _orderSpacing = 10;
+        [SerializeField, Min(1)] private int _orderSpacing = 1;
         
         [Space(15f)]
         [SerializeField] private Canvas _dimmerCanvas;
@@ -219,7 +219,7 @@ namespace LLib
                 
                 if (_openedPopups[i].IsModal)
                 {
-                    dimmerOrder = order - 1;
+                    dimmerOrder = order;
                 }
             }
             
