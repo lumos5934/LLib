@@ -118,9 +118,9 @@ namespace LLib
                 return null;
 
             var newPopup = Instantiate(prefab, transform);
+            newPopup.Init();
             newPopup.Canvas.sortingLayerName = _sortingLayer;
             newPopup.gameObject.SetActive(false);
-            newPopup.Init();
 
             _instancesByType[typeof(T)] = newPopup; 
 
