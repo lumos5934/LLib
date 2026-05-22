@@ -211,15 +211,19 @@ namespace LLib
         private void UpdateOrders()
         {
             int dimmerOrder = -1;
+            float dimmerDistance = -1;
             
             for (int i = 0; i < _openedPopups.Count; i++)
             {
                 int order = _minOrder + (i + 1) * _orderSpacing;
-                _openedPopups[i].SetOrder(order);
+                var target = _openedPopups[i];
+
+                target.Canvas.sortingOrder = order;
                 
-                if (_openedPopups[i].IsModal)
+                if (target.IsModal)
                 {
                     dimmerOrder = order;
+                    dimmerDistance = target.Canvas.planeDistance - 1;
                 }
             }
             
@@ -229,6 +233,7 @@ namespace LLib
                 {
                     _dimmerCanvas.gameObject.SetActive(true);
                     _dimmerCanvas.sortingOrder = dimmerOrder;
+                    _dimmerCanvas.planeDistance = dimmerDistance;
                 }
                 else
                 {

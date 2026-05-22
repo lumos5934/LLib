@@ -22,15 +22,5 @@ namespace LLib
                 ui.Init();
             }
         }
-
-        public void SetCamera(Camera cam)
-        {
-            Canvas.worldCamera = cam;
-        }
-
-        public void SetOrder(int order)
-        {
-            Canvas.sortingOrder = order;
-        }
     }
 }
