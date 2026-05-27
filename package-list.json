@@ -1,5 +1,5 @@
 {
-  "package-list": [
+  "packages": [
     {
       "name": "DOTween",
       "version": "1.0.0",
