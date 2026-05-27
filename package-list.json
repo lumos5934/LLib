@@ -1,0 +1,16 @@
+{
+  "package-list": [
+    {
+      "name": "DOTween",
+      "version": "1.0.0",
+      "url": "https://github.com/lumos5934/LLib-DOTween.git",
+      "description": "123"
+    },
+    {
+      "name": "Firebase",
+      "version": "1.2.0",
+      "url": "https://github.com/lumos5934/LLib-firebase.git",
+      "description": "1243"
+    }
+  ]
+}
