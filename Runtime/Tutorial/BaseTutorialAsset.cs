@@ -9,4 +9,3 @@ namespace LLib
         public abstract BaseTutorial Create();
     }
 }
-

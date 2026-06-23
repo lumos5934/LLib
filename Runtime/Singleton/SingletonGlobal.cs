@@ -4,9 +4,10 @@ namespace LLib
 {
     public class SingletonGlobal<T> : MonoBehaviour where T : MonoBehaviour
     {
-        private static bool applicationIsQuitting = false;
-        
+        private static bool applicationIsQuitting;
+
         private static T _instance;
+
         public static T Instance
         {
             get
@@ -19,18 +20,18 @@ namespace LLib
 
                     if (_instance == null)
                     {
-                        GameObject go = new GameObject(typeof(T).Name);
+                        var go = new GameObject(typeof(T).Name);
                         _instance = go.AddComponent<T>();
                     }
-            
+
                     DontDestroyOnLoad(_instance.gameObject);
                 }
 
                 return _instance;
             }
         }
-     
-  
+
+
         protected virtual void Awake()
         {
             if (_instance == null)
@@ -43,13 +44,11 @@ namespace LLib
                 Destroy(gameObject);
             }
         }
-        
+
         protected virtual void OnDestroy()
         {
-            if (Instance == this)
-            {
+            if (Instance == this) 
                 _instance = null;
-            }
         }
 
         protected virtual void OnApplicationQuit()

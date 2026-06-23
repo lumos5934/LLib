@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace LLib
 {
@@ -7,29 +8,29 @@ namespace LLib
     {
         public static T GetWeighted<T>(IEnumerable<T> targets) where T : IDrawable
         {
-            if (targets == null) 
+            if (targets == null)
                 return default;
-            
+
             var list = targets.ToList();
-            if (list.Count == 0) 
+            if (list.Count == 0)
                 return default;
-        
-            if (list.Count == 1) 
+
+            if (list.Count == 1)
                 return list[0];
 
-            float totalWeight = list.Sum(x => x.DrawWeight);
-            
-            if (totalWeight <= 0f) 
+            var totalWeight = list.Sum(x => x.DrawWeight);
+
+            if (totalWeight <= 0f)
                 return list[0];
 
-            float roll = UnityEngine.Random.Range(0f, totalWeight);
-            float cumulative = 0f;
+            var roll = Random.Range(0f, totalWeight);
+            var cumulative = 0f;
 
             foreach (var item in list)
             {
                 cumulative += item.DrawWeight;
-            
-                if (roll < cumulative) 
+
+                if (roll < cumulative)
                     return item;
             }
 
@@ -37,4 +38,3 @@ namespace LLib
         }
     }
 }
-

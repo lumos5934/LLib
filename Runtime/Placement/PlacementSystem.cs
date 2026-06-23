@@ -12,200 +12,190 @@ namespace LLib
             TopLeft,
             TopRight
         }
-        
-        
-        private PlaceableGrid _grid;
-        private IPlaceable _placeable;
+
         private PlacementContext _context;
-        private CellPivot _pivot = CellPivot.BottomLeft;
-        
-        
-        public IPlaceable Placeable => _placeable;
-        public PlaceableGrid Grid => _grid;
+
+
+        public IPlaceable Placeable { get; private set; }
+
+        public PlaceableGrid Grid { get; private set; }
+
         public PlacementContext Context => _context;
-        public CellPivot Pivot => _pivot;
-        
+        public CellPivot Pivot { get; private set; } = CellPivot.BottomLeft;
+
 
         public void Begin(PlaceableGrid grid, IPlaceable target, Vector3 position)
         {
             if (target == null)
                 return;
-            
-            if (_placeable != null)
+
+            if (Placeable != null)
             {
-                if (_placeable != target)
-                {
-                    _placeable.OnCancel();
-                }
+                if (Placeable != target)
+                    Placeable.OnCancel();
                 else
-                {
                     return;
-                }
             }
-            
-            _grid = grid;
-            _placeable = target;
+
+            Grid = grid;
+            Placeable = target;
 
 
-            _context.IsReplace = _grid.IsPlaced(_placeable, out var bounds);
-            
+            _context.IsReplace = Grid.IsPlaced(Placeable, out var bounds);
+
             if (_context.IsReplace)
             {
-                _grid.Release(bounds);
+                Grid.Release(bounds);
             }
             else
             {
-                var startCell = CalculateStartCell(position, _placeable.Size);
-                
-                bounds = new BoundsInt((Vector3Int)startCell, (Vector3Int)_placeable.Size);
+                var startCell = CalculateStartCell(position, Placeable.Size);
+
+                bounds = new BoundsInt((Vector3Int)startCell, (Vector3Int)Placeable.Size);
             }
-            
+
             UpdateContext(bounds);
-            
-            _placeable.OnBegin();
+
+            Placeable.OnBegin();
         }
 
 
         public void Move(Vector3 position)
         {
-            if (_grid == null || _placeable == null)
+            if (Grid == null || Placeable == null)
                 return;
-            
-            var startCell = CalculateStartCell(position, _placeable.Size);
-            
+
+            var startCell = CalculateStartCell(position, Placeable.Size);
+
             var newBounds = new BoundsInt((Vector3Int)startCell, _context.CellBounds.size);
-            
-            int clampedMinX = Mathf.Clamp(newBounds.xMin, _grid.CellBounds.xMin, _grid.CellBounds.xMax - newBounds.size.x);
-            int clampedMinY = Mathf.Clamp(newBounds.yMin, _grid.CellBounds.yMin, _grid.CellBounds.yMax - newBounds.size.y);
-            
+
+            var clampedMinX =
+                Mathf.Clamp(newBounds.xMin, Grid.CellBounds.xMin, Grid.CellBounds.xMax - newBounds.size.x);
+            var clampedMinY =
+                Mathf.Clamp(newBounds.yMin, Grid.CellBounds.yMin, Grid.CellBounds.yMax - newBounds.size.y);
+
             var clampedNewBounds = new BoundsInt(new Vector3Int(clampedMinX, clampedMinY, 0), newBounds.size);
-            if (clampedNewBounds != _context.CellBounds)
-            {
-                UpdateContext(clampedNewBounds);
-            }
+            if (clampedNewBounds != _context.CellBounds) UpdateContext(clampedNewBounds);
         }
 
-        
+
         public bool TryPlace()
         {
-            if (_grid == null ||
-                _placeable == null)
+            if (Grid == null ||
+                Placeable == null)
                 return false;
 
 
-            if (_grid.Place(_placeable, _context.CellBounds))
+            if (Grid.Place(Placeable, _context.CellBounds))
             {
-                _placeable.OnPlace();
-                _placeable = null;
+                Placeable.OnPlace();
+                Placeable = null;
                 return true;
             }
 
             return false;
         }
 
-        
+
         public bool Remove()
         {
-            if (_grid == null ||
-                _placeable == null)
+            if (Grid == null ||
+                Placeable == null)
                 return false;
 
-            if (_grid.Remove(_placeable))
+            if (Grid.Remove(Placeable))
             {
-                _placeable.OnRemove();
-                _placeable = null;
-                _grid = null;
-                
+                Placeable.OnRemove();
+                Placeable = null;
+                Grid = null;
+
                 return true;
             }
-         
+
             return false;
         }
-        
-        
+
+
         public void Cancel()
         {
-            if (_grid == null ||
-                _placeable == null)
+            if (Grid == null ||
+                Placeable == null)
                 return;
-            
+
             if (_context.IsReplace)
             {
-                if (_grid.IsPlaced(_placeable, out var bounds))
-                {
-                    _grid.Occupy(bounds);
-                }
-                
-                _placeable.OnCancel();
+                if (Grid.IsPlaced(Placeable, out var bounds)) Grid.Occupy(bounds);
+
+                Placeable.OnCancel();
             }
             else
             {
-                _placeable.OnRemove();
+                Placeable.OnRemove();
             }
 
-            _grid = null;
-            _placeable = null;
+            Grid = null;
+            Placeable = null;
         }
 
 
         public void SetPivot(CellPivot cellPivot)
         {
-            _pivot = cellPivot;
+            Pivot = cellPivot;
         }
 
-        
+
         private Vector2Int CalculateStartCell(Vector3 position, Vector2Int size)
         {
-            Vector3 offset = Vector3.zero;
-            
-            if (_pivot == CellPivot.Center)
+            var offset = Vector3.zero;
+
+            if (Pivot == CellPivot.Center)
             {
-                if (size.x % 2 == 0) offset.x = 0.5f * _grid.CellSize;
-                if (size.y % 2 == 0) offset.y = 0.5f * _grid.CellSize;
+                if (size.x % 2 == 0) offset.x = 0.5f * Grid.CellSize;
+                if (size.y % 2 == 0) offset.y = 0.5f * Grid.CellSize;
             }
 
-            var gridCellBounds = _grid.CellBounds;
-            var gridCellSize = _grid.CellSize;
-            
-            int cellX = Mathf.FloorToInt(position.x / gridCellSize);
-            int cellY = Mathf.FloorToInt(position.y / gridCellSize);
-            
+            var gridCellBounds = Grid.CellBounds;
+            var gridCellSize = Grid.CellSize;
+
+            var cellX = Mathf.FloorToInt(position.x / gridCellSize);
+            var cellY = Mathf.FloorToInt(position.y / gridCellSize);
+
             cellX = Mathf.Clamp(cellX, gridCellBounds.min.x, gridCellBounds.max.x);
             cellY = Mathf.Clamp(cellY, gridCellBounds.min.y, gridCellBounds.max.y);
-            
-            Vector2Int startCell = new Vector2Int(cellX, cellY);
-            
 
-            switch (_pivot)
+            var startCell = new Vector2Int(cellX, cellY);
+
+
+            switch (Pivot)
             {
                 case CellPivot.Center:
                     startCell.x -= size.x / 2;
                     startCell.y -= size.y / 2;
                     break;
                 case CellPivot.BottomRight:
-                    startCell.x -= (size.x - 1);
+                    startCell.x -= size.x - 1;
                     break;
                 case CellPivot.TopLeft:
-                    startCell.y -= (size.y - 1);
+                    startCell.y -= size.y - 1;
                     break;
                 case CellPivot.TopRight:
-                    startCell.x -= (size.x - 1);
-                    startCell.y -= (size.y - 1);
+                    startCell.x -= size.x - 1;
+                    startCell.y -= size.y - 1;
                     break;
                 case CellPivot.BottomLeft:
                 default:
                     break;
             }
-            
+
             return startCell;
         }
-        
-        
+
+
         private void UpdateContext(BoundsInt cellBounds)
         {
-            var worldSize = (Vector3)cellBounds.size * _grid.CellSize;
-            var worldMin = (Vector3)cellBounds.min * _grid.CellSize;
-            var worldCenter = worldMin + (worldSize * 0.5f);
+            var worldSize = (Vector3)cellBounds.size * Grid.CellSize;
+            var worldMin = (Vector3)cellBounds.min * Grid.CellSize;
+            var worldCenter = worldMin + worldSize * 0.5f;
             var worldBounds = new Bounds(worldCenter, worldSize);
 
             cellBounds.size = new Vector3Int(cellBounds.size.x, cellBounds.size.y, 1);
@@ -213,21 +203,18 @@ namespace LLib
             _context.WorldBounds = worldBounds;
             _context.CellBounds = cellBounds;
 
-            bool canPlace = true;
-            
+            var canPlace = true;
+
             foreach (Vector2Int cell in cellBounds.allPositionsWithin)
-            {
-                if (_grid.IsOccupied(cell))
+                if (Grid.IsOccupied(cell))
                 {
                     canPlace = false;
                     break;
                 }
-            }
 
             _context.CanPlace = canPlace;
-        
-            _placeable.OnUpdated(_context);
+
+            Placeable.OnUpdated(_context);
         }
     }
 }
-

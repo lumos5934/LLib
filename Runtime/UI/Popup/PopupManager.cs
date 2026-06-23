@@ -5,38 +5,32 @@ using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
 
-
 namespace LLib
 {
-    public class PopupManager : MonoBehaviour, IPreInitializable
+    public class PopupManager : SingletonGlobal<PopupManager>, IPreInitializable
     {
-        [Header("Sorting")]
+        [Header("Sorting")] 
         [SerializeField] private string _layer;
         [SerializeField] private int _minOrder = 1000;
         [SerializeField, Min(2)] private int _orderSpacing = 2;
-        
-        [Space(15f)]
+
+        [Space(15f)] 
         [SerializeField] private Canvas _dimmerCanvas;
 
-        private Dictionary<Type, UIPopup> _prefabsByType = new();
-        private Dictionary<Type, UIPopup> _instancesByType = new();
-        private List<UIPopup> _openedPopups = new();
+        private readonly Dictionary<Type, UIPopup> _instancesByType = new();
+        private readonly List<UIPopup> _openedPopups = new();
+        private readonly Dictionary<Type, UIPopup> _prefabsByType = new();
         private Camera _camera;
-        
-        
-        private void Awake()
-        {
-            Services.Register(this);
-        }
-        
-        
+
+
+
         public UniTask<bool> InitAsync(PreInitContext ctx)
         {
             _camera = GetComponentInChildren<Camera>();
             if (_camera == null)
                 return UniTask.FromResult(false);
 
-            
+
             _camera.clearFlags = CameraClearFlags.Depth;
 
             if (_dimmerCanvas != null)
@@ -45,76 +39,70 @@ namespace LLib
                 _dimmerCanvas.worldCamera = _camera;
                 _dimmerCanvas.gameObject.SetActive(false);
             }
-            
+
             UpdateCameraStack();
-            
-            SceneManager.sceneLoaded += (scene, mode) =>
-            {
-                UpdateCameraStack();
-            };
+
+            SceneManager.sceneLoaded += (scene, mode) => { UpdateCameraStack(); };
 
             return UniTask.FromResult(true);
         }
 
-        
+
         public void RegisterPrefab(UIPopup prefab)
         {
-            if (prefab == null) 
+            if (prefab == null)
                 return;
 
-            Type type = prefab.GetType(); 
+            var type = prefab.GetType();
             _prefabsByType[type] = prefab;
         }
-        
-      
+
+
         public void UnregisterPrefab<T>() where T : UIPopup
         {
             UnregisterPrefab(typeof(T));
         }
-        
-        
+
+
         public void UnregisterPrefab(UIPopup prefab)
         {
-            if (prefab == null) 
+            if (prefab == null)
                 return;
-            
-            Type type = prefab.GetType(); 
+
+            var type = prefab.GetType();
             UnregisterPrefab(type);
         }
-        
-        
+
+
         private void UnregisterPrefab(Type type)
         {
             _prefabsByType.Remove(type);
-            
+
             if (_instancesByType.TryGetValue(type, out var instance))
             {
                 if (instance != null)
                 {
-                    _openedPopups.Remove(instance); 
+                    _openedPopups.Remove(instance);
                     Destroy(instance.gameObject);
                 }
-                
+
                 _instancesByType.Remove(type);
                 UpdateOrders();
             }
         }
 
-        
+
         private T Get<T>() where T : UIPopup
         {
-            if (_instancesByType.TryGetValue(typeof(T), out var containsPopup))
-            {
-                return containsPopup as T;
-            }
-            
+            if (_instancesByType.TryGetValue(typeof(T), out var containsPopup)) return containsPopup as T;
+
             return CreateInstance<T>();
         }
 
-        
+
         private T CreateInstance<T>() where T : UIPopup
         {
-            _prefabsByType.TryGetValue(typeof(T), out UIPopup prefab);
+            _prefabsByType.TryGetValue(typeof(T), out var prefab);
             if (prefab == null)
                 return null;
 
@@ -124,25 +112,25 @@ namespace LLib
             newPopup.Canvas.sortingLayerName = _layer;
             newPopup.gameObject.SetActive(false);
 
-            _instancesByType[typeof(T)] = newPopup; 
+            _instancesByType[typeof(T)] = newPopup;
 
             return newPopup as T;
         }
 
-        
+
         public T Open<T>() where T : UIPopup
         {
             var popup = Get<T>();
             if (popup == null)
                 return null;
-            
+
             OnOpen(popup);
             popup.Open();
-            
+
             return popup;
         }
 
-        
+
         private void OnOpen(UIPopup popup)
         {
             if (_openedPopups.Contains(popup))
@@ -155,18 +143,18 @@ namespace LLib
 
                 _openedPopups.Remove(popup);
             }
-            
+
             _openedPopups.Add(popup);
             UpdateOrders();
         }
 
-        
+
         public void Close()
         {
             if (_openedPopups.Count == 0)
                 return;
 
-            int lastIndex = _openedPopups.Count - 1;
+            var lastIndex = _openedPopups.Count - 1;
             var popup = _openedPopups[lastIndex];
 
             _openedPopups.RemoveAt(lastIndex);
@@ -175,56 +163,45 @@ namespace LLib
             UpdateOrders();
         }
 
-        
+
         public void Close<T>() where T : UIPopup
         {
-            for (int i = _openedPopups.Count - 1; i >= 0; i--)
-            {
+            for (var i = _openedPopups.Count - 1; i >= 0; i--)
                 if (_openedPopups[i] is T popup)
                 {
                     _openedPopups.RemoveAt(i);
                     popup.Close();
-                    
+
                     UpdateOrders();
                     return;
                 }
-            }
         }
 
-        
+
         public void CloseAll()
         {
-            for (int i = _openedPopups.Count - 1; i >= 0; i--)
-            {
-                _openedPopups[i].Close();
-            }
-            
+            for (var i = _openedPopups.Count - 1; i >= 0; i--) _openedPopups[i].Close();
+
             _openedPopups.Clear();
-            
-            if (_dimmerCanvas != null)
-            {
-                _dimmerCanvas.gameObject.SetActive(false);
-            }
+
+            if (_dimmerCanvas != null) _dimmerCanvas.gameObject.SetActive(false);
         }
-        
-        
+
+
         private void UpdateOrders()
         {
-            int dimmerOrder = -1;
-            
-            for (int i = 0; i < _openedPopups.Count; i++)
+            var dimmerOrder = -1;
+
+            for (var i = 0; i < _openedPopups.Count; i++)
             {
-                int order = _minOrder + (i + 1) * _orderSpacing;
+                var order = _minOrder + (i + 1) * _orderSpacing;
                 var target = _openedPopups[i];
 
                 target.Canvas.sortingOrder = order;
-                
-                if (target.IsModal)
-                {
-                    dimmerOrder = order - 1;
-                }
+
+                if (target.IsModal) dimmerOrder = order - 1;
             }
-            
+
             if (_dimmerCanvas != null)
             {
                 if (dimmerOrder > -1)
@@ -238,24 +215,24 @@ namespace LLib
                 }
             }
         }
-        
-        
+
+
         private void UpdateCameraStack()
         {
-            Camera mainCam = Camera.main;
+            var mainCam = Camera.main;
             if (mainCam != null)
             {
                 var mainCamData = mainCam.GetUniversalAdditionalCameraData();
                 var popupCamData = _camera.GetUniversalAdditionalCameraData();
-                
+
                 if (!mainCamData.cameraStack.Contains(_camera))
                 {
                     mainCamData.cameraStack.Add(_camera);
-                    
+
                     _camera.targetTexture = mainCam.targetTexture;
                     _camera.targetDisplay = mainCam.targetDisplay;
                     _camera.allowMSAA = mainCam.allowMSAA;
-                
+
                     popupCamData.antialiasing = mainCamData.antialiasing;
                     popupCamData.antialiasingQuality = mainCamData.antialiasingQuality;
                 }

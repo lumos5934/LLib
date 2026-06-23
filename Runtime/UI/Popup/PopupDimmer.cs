@@ -6,6 +6,6 @@ public class PopupDimmer : MonoBehaviour, IPointerClickHandler
 {
     public void OnPointerClick(PointerEventData eventData)
     {
-        Services.Get<PopupManager>().Close();
+        PopupManager.Instance?.Close();
     }
 }

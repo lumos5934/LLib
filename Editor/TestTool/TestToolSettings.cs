@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
-using UnityEngine;
 using UnityEditor;
+using UnityEngine;
 
 namespace LLib.Editor
 {
@@ -8,24 +8,24 @@ namespace LLib.Editor
     public class TestToolSettings : ScriptableSingleton<TestToolSettings>
     {
         [SerializeField] internal int TitleFontSize = 25;
-        [SerializeField] internal Color TitleFontColor = new (1f, 0.9f, 0.9f);
-        [SerializeField] internal Color TitleFontShadowColor = new (0.15f, 0.1f, 0f, 0.8f);
-        [SerializeField] internal Color TitleUnderLineColor =  new (1, 1, 1, 0.15f);
-        [SerializeField] internal Color TitleUnderLineHighlightColor = new (1f, 0.85f, 0.4f, 0.6f);
-        
-        [SerializeField] internal Color BottomBackgroundColor = new (0.2f, 0.2f, 0.2f, 1f);
-        
+        [SerializeField] internal Color TitleFontColor = new(1f, 0.9f, 0.9f);
+        [SerializeField] internal Color TitleFontShadowColor = new(0.15f, 0.1f, 0f, 0.8f);
+        [SerializeField] internal Color TitleUnderLineColor = new(1, 1, 1, 0.15f);
+        [SerializeField] internal Color TitleUnderLineHighlightColor = new(1f, 0.85f, 0.4f, 0.6f);
+
+        [SerializeField] internal Color BottomBackgroundColor = new(0.2f, 0.2f, 0.2f, 1f);
+
         [SerializeField] internal float CategoryRectWidth = 90;
-        
+
         [SerializeField] internal int ButtonFontSize = 12;
         [SerializeField] internal float ButtonHeight = 25;
-        
-        [SerializeField] internal Color ButtonNormalColor = new (1f, 0.80f, 0.6f, 0.6f);
-        [SerializeField] internal Color ButtonHighlightColor = new (1f, 0.85f, 0.4f, 0.9f);
-        [SerializeField] internal Color ButtonFontNormalColor = Color.white; 
-        [SerializeField] internal Color ButtonFontHoverColor = new (0.5f, 0.8f, 0.7f, 1);
-        [SerializeField] internal Color ContentsBackgroundColor = new (0.1f, 0.1f, 0.1f, 1f);
-        
+
+        [SerializeField] internal Color ButtonNormalColor = new(1f, 0.80f, 0.6f, 0.6f);
+        [SerializeField] internal Color ButtonHighlightColor = new(1f, 0.85f, 0.4f, 0.9f);
+        [SerializeField] internal Color ButtonFontNormalColor = Color.white;
+        [SerializeField] internal Color ButtonFontHoverColor = new(0.5f, 0.8f, 0.7f, 1);
+        [SerializeField] internal Color ContentsBackgroundColor = new(0.1f, 0.1f, 0.1f, 1f);
+
         [SerializeField] internal List<BaseTestToolModule> Modules = new();
 
 
@@ -37,7 +37,6 @@ namespace LLib.Editor
 
         #region GUIStyle
 
-
         public void InitStyles()
         {
             _titleStyle = null;
@@ -48,17 +47,15 @@ namespace LLib.Editor
             _btnStyle = null;
             _noticeStyle = null;
         }
-        
+
 
         private GUIStyle _titleStyle;
+
         internal GUIStyle TitleStyle
         {
             get
             {
-                if (_titleStyle == null)
-                {
-                    _titleStyle = new GUIStyle(EditorStyles.boldLabel);
-                }
+                if (_titleStyle == null) _titleStyle = new GUIStyle(EditorStyles.boldLabel);
 
                 _titleStyle.fontStyle = FontStyle.Bold;
                 _titleStyle.alignment = TextAnchor.MiddleCenter;
@@ -69,20 +66,18 @@ namespace LLib.Editor
                 _titleStyle.hover.textColor = TitleFontColor;
                 _titleStyle.active.textColor = TitleFontColor;
                 _titleStyle.focused.textColor = TitleFontColor;
-                
+
                 return _titleStyle;
             }
         }
-        
+
         private GUIStyle _titleShadowStyle;
+
         internal GUIStyle TitleShadowStyle
         {
             get
             {
-                if (_titleShadowStyle == null)
-                {
-                    _titleShadowStyle = new GUIStyle(EditorStyles.boldLabel);
-                }
+                if (_titleShadowStyle == null) _titleShadowStyle = new GUIStyle(EditorStyles.boldLabel);
 
                 _titleShadowStyle.hover.background = null;
                 _titleShadowStyle.active.background = null;
@@ -99,74 +94,65 @@ namespace LLib.Editor
         }
 
         private GUIStyle _mainRectStyle;
+
         internal GUIStyle MainRectStyle
         {
             get
             {
-                if (_mainRectStyle == null)
-                {
-                    _mainRectStyle = new GUIStyle("box");
-                }
-                
+                if (_mainRectStyle == null) _mainRectStyle = new GUIStyle("box");
+
                 _mainRectStyle.padding = new RectOffset(0, 0, 0, 0);
                 _mainRectStyle.margin = new RectOffset(0, 0, 0, 0);
                 _mainRectStyle.stretchWidth = true;
                 _mainRectStyle.stretchHeight = true;
-            
+
                 return _mainRectStyle;
             }
         }
-        
+
         private GUIStyle _categorySideRectStyle;
+
         internal GUIStyle CategorySideRectStyle
         {
             get
             {
-                if (_categorySideRectStyle == null)
-                {
-                    _categorySideRectStyle = new GUIStyle();
-                }
-                
+                if (_categorySideRectStyle == null) _categorySideRectStyle = new GUIStyle();
+
                 _categorySideRectStyle.padding = new RectOffset(0, 0, 0, 3);
                 _categorySideRectStyle.margin = new RectOffset(0, 0, 0, 0);
 
                 return _categorySideRectStyle;
             }
         }
-        
+
         private GUIStyle _contentRectStyle;
+
         internal GUIStyle ContentRectStyle
         {
             get
             {
-                if (_contentRectStyle == null)
-                {
-                    _contentRectStyle = new GUIStyle("box");
-                }
-                
+                if (_contentRectStyle == null) _contentRectStyle = new GUIStyle("box");
+
                 _contentRectStyle.margin = new RectOffset(0, 1, 1, 0);
-              
+
                 return _contentRectStyle;
             }
         }
-        
+
         private GUIStyle _btnSelectedStyle;
 
         internal GUIStyle BtnSelectedStyle
         {
             get
             {
-                if (_btnSelectedStyle == null)
-                {
-                    _btnSelectedStyle = new GUIStyle(); 
-                }
+                if (_btnSelectedStyle == null) _btnSelectedStyle = new GUIStyle();
 
                 _btnSelectedStyle.fontStyle = FontStyle.Bold;
                 _btnSelectedStyle.alignment = TextAnchor.MiddleCenter;
                 _btnSelectedStyle.stretchWidth = true;
                 _btnSelectedStyle.fixedHeight = ButtonHeight;
                 _btnSelectedStyle.fontSize = ButtonFontSize;
-        
+
                 _btnSelectedStyle.normal.textColor = ButtonFontNormalColor;
                 _btnSelectedStyle.hover.textColor = ButtonFontHoverColor;
 
@@ -176,23 +162,21 @@ namespace LLib.Editor
                 return _btnSelectedStyle;
             }
         }
-        
+
         private GUIStyle _btnStyle;
+
         internal GUIStyle BtnStyle
         {
             get
             {
-                if (_btnStyle == null)
-                {
-                    _btnStyle = new GUIStyle(EditorStyles.miniButton); 
-                }
+                if (_btnStyle == null) _btnStyle = new GUIStyle(EditorStyles.miniButton);
 
                 _btnStyle.fontStyle = FontStyle.Bold;
                 _btnStyle.alignment = TextAnchor.MiddleCenter;
                 _btnStyle.stretchWidth = true;
                 _btnStyle.fixedHeight = ButtonHeight;
                 _btnStyle.fontSize = ButtonFontSize;
-        
+
                 _btnStyle.normal.textColor = ButtonFontNormalColor;
                 _btnStyle.hover.textColor = ButtonFontHoverColor;
 
@@ -202,8 +186,9 @@ namespace LLib.Editor
                 return _btnStyle;
             }
         }
-        
+
         private GUIStyle _noticeStyle;
+
         internal GUIStyle NoticeStyle
         {
             get
@@ -211,18 +196,18 @@ namespace LLib.Editor
                 if (_noticeStyle == null)
                 {
                     _noticeStyle = new GUIStyle();
-                    
+
                     _noticeStyle.alignment = TextAnchor.MiddleCenter;
                     _noticeStyle.fontSize = 18;
                     _noticeStyle.fontStyle = FontStyle.Bold;
                     _noticeStyle.padding = new RectOffset(20, 20, 20, 20);
                     _noticeStyle.normal.textColor = new Color(0.7f, 0.7f, 0.7f);
                 }
-            
+
                 return _noticeStyle;
             }
         }
-        
+
         #endregion
     }
 }

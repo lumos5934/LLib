@@ -1,58 +1,59 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace LLib
 {
-    [System.Serializable]
+    [Serializable]
     public class UnitEffect
     {
-        public int TargetStatID;      //Health ..
-        public int TargetResourceID;      //Health ..
-        
-        
-        public int MethodFlags;     //Direct, Dot ...
-        public int AttributeFlags;    //Normal, Fire ...
+        public int TargetStatID; //Health ..
+        public int TargetResourceID; //Health ..
+
+
+        public int MethodFlags; //Direct, Dot ...
+        public int AttributeFlags; //Normal, Fire ...
         public bool IsPositive;
-        
-        
+
+
         public float BaseValue;
         public float AdditionalValue;
-        public float FinalMultiplier = 1f; 
-       
-        
+        public float FinalMultiplier = 1f;
+
+
         public float Duration;
         public float TickInterval;
 
-        
+
         public List<EffectFactor> Factors = new();
-        
-        
+
+
         public float FinalValue
         {
             get
             {
-                float value = (BaseValue + AdditionalValue) * FinalMultiplier;
+                var value = (BaseValue + AdditionalValue) * FinalMultiplier;
                 return IsPositive ? value : value * -1f;
             }
         }
-        
-        
+
+
         public void Copy(UnitEffect origin)
         {
-            this.MethodFlags =  origin.MethodFlags;
-            this.AttributeFlags = origin.AttributeFlags;
-            this.TargetResourceID = origin.TargetResourceID;
-            this.TargetStatID = origin.TargetStatID;    
-            this.IsPositive = origin.IsPositive;
-            this.FinalMultiplier = origin.FinalMultiplier;
-            this.BaseValue = origin.BaseValue;
-            this.Duration = origin.Duration;
-            this.TickInterval = origin.TickInterval;
-            
-            this.Factors.Clear();
-            this.Factors.AddRange(origin.Factors);
+            MethodFlags = origin.MethodFlags;
+            AttributeFlags = origin.AttributeFlags;
+            TargetResourceID = origin.TargetResourceID;
+            TargetStatID = origin.TargetStatID;
+            IsPositive = origin.IsPositive;
+            FinalMultiplier = origin.FinalMultiplier;
+            BaseValue = origin.BaseValue;
+            Duration = origin.Duration;
+            TickInterval = origin.TickInterval;
+
+            Factors.Clear();
+            Factors.AddRange(origin.Factors);
         }
-        
-        
+
+
         public void Reset()
         {
             MethodFlags = 0;
@@ -66,6 +67,5 @@ namespace LLib
             TickInterval = 0;
             Factors.Clear();
         }
-      
     }
 }

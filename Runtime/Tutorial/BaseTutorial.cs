@@ -1,5 +1,4 @@
-﻿
-namespace LLib
+﻿namespace LLib
 {
     public abstract class BaseTutorial
     {
@@ -9,4 +8,3 @@ namespace LLib
         public abstract bool IsComplete();
     }
 }
-

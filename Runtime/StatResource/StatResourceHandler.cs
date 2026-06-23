@@ -4,14 +4,14 @@ namespace LLib
 {
     public class StatResourceHandler
     {
-        private Dictionary<int, StatResource> _resources;
-        
+        private readonly Dictionary<int, StatResource> _resources;
+
         public StatResourceHandler()
         {
-            _resources = new();
+            _resources = new Dictionary<int, StatResource>();
         }
 
-        
+
         public void Register(StatResource resource)
         {
             _resources.TryAdd(resource.ID, resource);
@@ -22,8 +22,8 @@ namespace LLib
         {
             Unregister(resource.ID);
         }
-        
-        
+
+
         public void Unregister(int id)
         {
             var contains = Get(id);
@@ -33,8 +33,8 @@ namespace LLib
                 _resources.Remove(id);
             }
         }
-        
-        
+
+
         public StatResource Get(int id)
         {
             return _resources.GetValueOrDefault(id);
@@ -46,35 +46,35 @@ namespace LLib
             var target = Get(id);
             if (target == null)
                 return 0;
-            
+
             return target.Current;
         }
-        
-        
+
+
         public float GetMax(int id)
         {
             var target = Get(id);
             if (target == null)
                 return 0;
-            
+
             return target.Max;
         }
-        
-        
+
+
         public float GetRatio(int id)
         {
             var target = Get(id);
             if (target == null)
                 return 0;
-            
+
             return target.Ratio;
         }
-        
-        
+
+
         public void Apply(int id, float amount)
         {
             var resource = Get(id);
-            resource?.Apply(amount); 
+            resource?.Apply(amount);
         }
 
 

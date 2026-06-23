@@ -10,38 +10,36 @@ namespace LLib
         public CanvasGroup CanvasGroup { get; private set; }
         public RectTransform RectTransform { get; private set; }
 
-        
-        
-        
+
         public virtual void Init()
         {
             CanvasGroup = GetComponent<CanvasGroup>();
             RectTransform = GetComponent<RectTransform>();
         }
-        
-        
+
+
         public void Open()
         {
-            if (IsOpened) 
+            if (IsOpened)
                 return;
-            
+
             IsOpened = true;
-            
+
             OnOpen();
         }
 
 
         public void Close()
         {
-            if (!IsOpened) 
+            if (!IsOpened)
                 return;
-            
+
             IsOpened = false;
-            
+
             OnClose();
         }
 
-        
+
         public abstract void Refresh();
 
         protected virtual void OnOpen()

@@ -4,24 +4,22 @@ namespace LLib
 {
     public abstract class BaseBuff
     {
-        public int ID;
-        public string Name;
-        public float Duration;
-        public float Interval;
-        public List<UnitEffect> Effects;
-        
         private float _tickTimer;
-        
+        public float Duration;
+        public List<UnitEffect> Effects;
+        public int ID;
+        public float Interval;
+        public string Name;
+
         public IUnit Target { get; private set; }
         public float Timer { get; protected set; }
         public int StackCount { get; private set; } = 1;
 
 
-
         public void Apply(IUnit target)
         {
             Reset();
-            
+
             Target = target;
 
             OnApply();
@@ -34,8 +32,8 @@ namespace LLib
 
             OnRemove();
         }
-        
-        
+
+
         public void Update(float deltaTime)
         {
             Timer -= deltaTime;
@@ -47,7 +45,7 @@ namespace LLib
                 _tickTimer -= Interval;
             }
         }
-        
+
         public void AddStack()
         {
             StackCount++;
@@ -59,8 +57,8 @@ namespace LLib
         protected abstract void OnRemove();
         protected abstract void OnTick();
         protected abstract void OnStack();
-       
-        
+
+
         private void Reset()
         {
             Target = null;

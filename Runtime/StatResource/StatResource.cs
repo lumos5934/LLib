@@ -5,82 +5,75 @@ namespace LLib
 {
     public class StatResource
     {
-        private readonly int _id;
         private readonly Stat _refStat;
-        
-        private float _current;
+
+
+        public StatResource(Stat refStat)
+        {
+            ID = refStat.ID;
+
+            _refStat = refStat;
+            _refStat.OnValueChanged += OnRefStatChanged;
+
+            Current = refStat.Value;
+        }
+
+        public int ID { get; }
+
+        public float Current { get; private set; }
+
+        public float Max => _refStat.Value;
+        public float Ratio => Mathf.Clamp01(Current / Max);
 
         public event Action<float, float> OnValueChanged;
         public event Action OnEmpty;
 
-        public int ID => _id;
-        public float Current => _current;
-        public float Max => _refStat.Value;
-        public float Ratio => Mathf.Clamp01(_current / Max);
-
-        
-        public StatResource(Stat refStat)
-        {
-            _id = refStat.ID;
-            
-            _refStat = refStat;
-            _refStat.OnValueChanged += OnRefStatChanged;
-            
-            _current = refStat.Value;
-        }
-
 
         public void Dispose()
         {
-            if (_refStat != null)
-            {
-                _refStat.OnValueChanged -= OnRefStatChanged;
-            }
+            if (_refStat != null) _refStat.OnValueChanged -= OnRefStatChanged;
         }
-        
-        
+
+
         public void Apply(float amount)
         {
-            if (amount == 0) 
+            if (amount == 0)
                 return;
 
-            float previous = _current;
-            _current = Mathf.Clamp(_current + amount, 0, Max);
+            var previous = Current;
+            Current = Mathf.Clamp(Current + amount, 0, Max);
 
-            if (!Mathf.Approximately(previous, _current))
+            if (!Mathf.Approximately(previous, Current))
             {
-                OnValueChanged?.Invoke(_current, Max);
-                
-                if (_current <= 0)
-                {
-                    OnEmpty?.Invoke();
-                }
+                OnValueChanged?.Invoke(Current, Max);
+
+                if (Current <= 0) OnEmpty?.Invoke();
             }
         }
 
 
         public void SetEmpty()
         {
-            _current = 0;
-            
-            OnValueChanged?.Invoke(_current, Max);
+            Current = 0;
+
+            OnValueChanged?.Invoke(Current, Max);
             OnEmpty?.Invoke();
         }
-        
+
 
         public void SetFull()
         {
-            _current = Max;
-            
-            OnValueChanged?.Invoke(_current, Max);
+            Current = Max;
+
+            OnValueChanged?.Invoke(Current, Max);
         }
 
 
         protected virtual void OnRefStatChanged(float max)
         {
-            _current = Math.Min(_current, max);
+            Current = Math.Min(Current, max);
 
-            OnValueChanged?.Invoke(_current, max);
+            OnValueChanged?.Invoke(Current, max);
         }
     }
 }

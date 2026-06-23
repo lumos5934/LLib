@@ -10,15 +10,15 @@ namespace LLib
         public override void Init()
         {
             base.Init();
-            
-            Canvas =  GetComponent<Canvas>();
-            
+
+            Canvas = GetComponent<Canvas>();
+
             var childUIs = GetComponentsInChildren<UIBase>();
             foreach (var ui in childUIs)
             {
-                if (ui.gameObject == gameObject) 
+                if (ui.gameObject == gameObject)
                     continue;
-                
+
                 ui.Init();
             }
         }

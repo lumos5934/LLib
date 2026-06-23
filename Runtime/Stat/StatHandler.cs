@@ -4,25 +4,25 @@ namespace LLib
 {
     public class StatHandler
     {
-        private Dictionary<int, Stat> _statsById;
-        private List<Stat> _stats;
-        
+        private readonly List<Stat> _stats;
+        private readonly Dictionary<int, Stat> _statsById;
+
         public StatHandler()
         {
-            _statsById = new();
-            _stats = new();
+            _statsById = new Dictionary<int, Stat>();
+            _stats = new List<Stat>();
         }
 
-        
+
         public Stat Get(int id)
         {
             if (!_statsById.TryGetValue(id, out var stat))
             {
-                stat = new Stat(id); 
+                stat = new Stat(id);
                 _statsById.Add(id, stat);
                 _stats.Add(stat);
             }
-            
+
             return stat;
         }
 
@@ -55,24 +55,24 @@ namespace LLib
 
             return stat?.Modifiers;
         }
-        
-        
+
+
         public void SetBaseValue(int id, float value)
         {
             var stat = Get(id);
 
             stat?.SetBaseValue(value);
         }
-        
-        
+
+
         public void AddModifier(int id, StatModifier modifier)
         {
             var stat = Get(id);
 
             stat?.AddModifier(modifier);
         }
-        
-        
+
+
         public void RemoveModifier(int id, StatModifier modifier)
         {
             var stat = Get(id);
@@ -80,13 +80,10 @@ namespace LLib
             stat?.RemoveModifier(modifier);
         }
 
-        
+
         public void RemoveAllFromSource(object source)
         {
-            foreach (var stat in _statsById.Values)
-            {
-                stat.RemoveAllFromSource(source);
-            }
+            foreach (var stat in _statsById.Values) stat.RemoveAllFromSource(source);
         }
     }
 }

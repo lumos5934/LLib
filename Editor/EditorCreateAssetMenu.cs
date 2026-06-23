@@ -11,7 +11,7 @@ namespace LLib.Editor
     {
         private static string GetCurrentPath()
         {
-            string path = AssetDatabase.GetAssetPath(Selection.activeObject);
+            var path = AssetDatabase.GetAssetPath(Selection.activeObject);
             if (string.IsNullOrEmpty(path))
                 path = "Assets";
             else if (!Directory.Exists(path))
@@ -19,32 +19,32 @@ namespace LLib.Editor
 
             return path;
         }
-        
+
         public static GameObject CreatePrefab<T>(UnityAction<GameObject> onObjCreated = null) where T : Component
         {
-            string typeName = typeof(T).Name;
-            
-            GameObject obj = new GameObject(typeName);
-            obj.AddComponent<T>();
-            
-            onObjCreated?.Invoke(obj);
-            
-            string prefabPath = Path.Combine(GetCurrentPath(), obj.name + ".prefab");
+            var typeName = typeof(T).Name;
 
-            GameObject prefab = PrefabUtility.SaveAsPrefabAsset(obj, prefabPath);
-            
+            var obj = new GameObject(typeName);
+            obj.AddComponent<T>();
+
+            onObjCreated?.Invoke(obj);
+
+            var prefabPath = Path.Combine(GetCurrentPath(), obj.name + ".prefab");
+
+            var prefab = PrefabUtility.SaveAsPrefabAsset(obj, prefabPath);
+
             Selection.activeObject = null;
             Object.DestroyImmediate(obj);
             AssetDatabase.Refresh();
-            
+
             return prefab;
         }
-        
+
         public static void CreateScript(string scriptName, string template)
         {
-            string path = GetCurrentPath();
-            
-            
+            var path = GetCurrentPath();
+
+
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(
                 0,
                 ScriptableObject.CreateInstance<OnCreateScript>(),
@@ -53,80 +53,60 @@ namespace LLib.Editor
                 template
             );
         }
-        
+
+        /// <summary>
+        ///     Prefabs
+        /// </summary>
+        [MenuItem("Assets/Create/[ LLib ]/Prefabs/Manager/Camera", false, int.MinValue)]
+        public static void CreateCameraManagerPrefab()
+        {
+            CreatePrefab<CameraManager>();
+        }
+
+
+        [MenuItem("Assets/Create/[ LLib ]/Prefabs/Manager/Resource", false, int.MinValue)]
+        public static void CreateResourceManagerPrefab()
+        {
+            CreatePrefab<ResourceManager>();
+        }
+
+        [MenuItem("Assets/Create/[ LLib ]/Prefabs/Manager/Popup", false, int.MinValue)]
+        public static void CreatePopupManagerPrefab()
+        {
+            CreatePrefab<PopupManager>(obj =>
+            {
+                var cameraObj = new GameObject("Camera");
+                cameraObj.transform.SetParent(obj.transform);
+                var camera = cameraObj.AddComponent<Camera>();
+                var data = camera.GetUniversalAdditionalCameraData();
+                data.renderType = CameraRenderType.Overlay;
+            });
+        }
+
+        [MenuItem("Assets/Create/[ LLib ]/Prefabs/Manager/Tutorial", false, int.MinValue)]
+        public static void CreateTutorialManagerPrefab()
+        {
+            CreatePrefab<TutorialManager>();
+        }
+
+        [MenuItem("Assets/Create/[ LLib ]/Prefabs/Manager/Save", false, int.MinValue)]
+        public static void CreateSaveManagerPrefab()
+        {
+            CreatePrefab<SaveManager>();
+        }
+
         internal class OnCreateScript : EndNameEditAction
         {
             public override void Action(int instanceId, string pathName, string resourceFile)
             {
-                string className = Path.GetFileNameWithoutExtension(pathName);
-                string finalContent = resourceFile.Replace("#SCRIPTNAME#", className);
+                var className = Path.GetFileNameWithoutExtension(pathName);
+                var finalContent = resourceFile.Replace("#SCRIPTNAME#", className);
 
                 File.WriteAllText(pathName, finalContent);
                 AssetDatabase.ImportAsset(pathName);
                 var asset = AssetDatabase.LoadAssetAtPath<MonoScript>(pathName);
                 ProjectWindowUtil.ShowCreatedAsset(asset);
             }
-        }
-        
-        /// <summary>
-        /// Prefabs
-        /// </summary>
-        /// 
-        
-        [MenuItem("Assets/Create/[ LLib ]/Prefabs/Manager/Camera", false, int.MinValue)]
-        public static void CreateCameraManagerPrefab()
-        {
-            CreatePrefab<CameraManager>();
-        }
-        
-        
-        [MenuItem("Assets/Create/[ LLib ]/Prefabs/Manager/Resource", false, int.MinValue)]
-        public static void CreateResourceManagerPrefab()
-        {
-            CreatePrefab<ResourceManager>();
-        }
-        
-        [MenuItem("Assets/Create/[ LLib ]/Prefabs/Manager/Audio", false, int.MinValue)]
-        public static void CreateAudioManagerPrefab()
-        {
-            CreatePrefab<AudioManager>();
-        }
-        
-        [MenuItem("Assets/Create/[ LLib ]/Prefabs/Manager/Popup", false, int.MinValue)]
-        public static void CreatePopupManagerPrefab()
-        {
-            CreatePrefab<PopupManager>(obj =>
-            {
-                GameObject cameraObj = new GameObject("Camera");
-                cameraObj.transform.SetParent(obj.transform);
-                var camera = cameraObj.AddComponent<Camera>();
-                var data = camera.GetUniversalAdditionalCameraData();
-                data.renderType =  CameraRenderType.Overlay;
-            });
-        }
-        
-        [MenuItem("Assets/Create/[ LLib ]/Prefabs/Manager/Pool", false, int.MinValue)]
-        public static void CreatePoolManagerPrefab()
-        {
-            CreatePrefab<PoolManager>();
-        }
-        
-        [MenuItem("Assets/Create/[ LLib ]/Prefabs/Manager/Tutorial", false, int.MinValue)]
-        public static void CreateTutorialManagerPrefab()
-        {
-            CreatePrefab<TutorialManager>();
-        }
-        
-        [MenuItem("Assets/Create/[ LLib ]/Prefabs/Manager/Save", false, int.MinValue)]
-        public static void CreateSaveManagerPrefab()
-        {
-            CreatePrefab<SaveManager>();
-        }
-        
-        [MenuItem("Assets/Create/[ LLib ]/Prefabs/Audio Player", false, int.MinValue)]
-        public static void CreateAudioPlayerPrefab()
-        {
-            CreatePrefab<AudioPlayer>();
         }
     }
 }

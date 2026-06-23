@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 
-
 namespace LLib
 {
     public struct PlacementContext
@@ -11,4 +10,3 @@ namespace LLib
         public bool IsReplace;
     }
 }
-

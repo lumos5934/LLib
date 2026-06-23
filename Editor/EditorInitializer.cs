@@ -12,12 +12,11 @@ namespace LLib.Editor
         {
             EditorApplication.delayCall += OnEditorFullyLoaded;
         }
-        
+
         private static void OnEditorFullyLoaded()
         {
-            string assetPath = $"Assets/{nameof(LLibSettings)}.asset";
-            
-            
+            var assetPath = $"Assets/{nameof(LLibSettings)}.asset";
+
             var settings = AssetDatabase.LoadAssetAtPath<LLibSettings>(assetPath);
             if (settings == null)
             {
@@ -26,10 +25,10 @@ namespace LLib.Editor
                 AssetDatabase.SaveAssets();
             }
 
-            
+
             var preloadedAssets = PlayerSettings.GetPreloadedAssets().ToList();
             preloadedAssets.RemoveAll(a => a == null);
-            
+
             if (!preloadedAssets.Contains(settings))
             {
                 preloadedAssets.Add(settings);

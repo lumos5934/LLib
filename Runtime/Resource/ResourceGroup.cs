@@ -9,31 +9,21 @@ namespace LLib
     [Serializable]
     public class ResourceGroup
     {
-        [Group("Folder Path"), 
-         SerializeField, 
-         HideLabel, 
-         Required] private string _folderPath;
-        
-        [Group("Label "), 
-         SerializeField, 
-         HideLabel , 
-         Required] private string _label;
-        
+        [Group("Folder Path")] [SerializeField] [HideLabel] [Required]
+        private string _folderPath;
 
-        private readonly Dictionary<string, Object> _resources = new();
+        [Group("Label ")] [SerializeField] [HideLabel] [Required]
+        private string _label;
 
-        
+
         public string FolderPath => _folderPath;
         public string Label => _label;
-        public Dictionary<string, Object> Resources => _resources;
-    
-  
+        public Dictionary<string, Object> Resources { get; } = new();
+
+
         public void SetResources(Object[] resources)
         {
-            foreach (var resource in resources)
-            {
-                _resources.TryAdd(resource.name, resource);
-            }
+            foreach (var resource in resources) Resources.TryAdd(resource.name, resource);
         }
     }
 }

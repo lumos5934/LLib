@@ -1,6 +1,8 @@
-﻿namespace LLib
+﻿using System;
+
+namespace LLib
 {
-    [System.Serializable]
+    [Serializable]
     public struct EffectFactor
     {
         public readonly bool IsRefSource;
@@ -15,4 +17,3 @@
         }
     }
 }
-

@@ -7,12 +7,12 @@ namespace LLib
     {
         private readonly Dictionary<int, Currency> _currencies = new();
 
-        
+
         public Currency Get(int id)
         {
             if (!_currencies.TryGetValue(id, out var currency))
             {
-                currency =  new Currency(id);
+                currency = new Currency(id);
                 _currencies.Add(id, currency);
             }
 
@@ -36,19 +36,19 @@ namespace LLib
         {
             Get(id).Set(value);
         }
-        
-        
+
+
         public bool Consume(int id, BigInteger amount)
         {
             var currency = Get(id);
-            
+
             if (currency.Value >= amount)
             {
                 currency.Add(-amount);
-                
+
                 return true;
             }
-            
+
             return false;
         }
 
@@ -56,7 +56,7 @@ namespace LLib
         public void Add(int id, BigInteger amount)
         {
             var currency = Get(id);
-            
+
             currency.Add(amount);
         }
     }

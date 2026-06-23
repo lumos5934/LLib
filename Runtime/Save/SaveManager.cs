@@ -5,24 +5,19 @@ using UnityEngine;
 
 namespace LLib
 {
-    public class SaveManager : MonoBehaviour, ISaveManager
+    public class SaveManager : SingletonGlobal<SaveManager>, ISaveManager
     {
         [SerializeField] private BaseDataSource _saveDataSource;
-        
+
         private readonly Dictionary<Type, object> _saveDataDict = new();
 
 
-        private void Awake()
-        {
-            Services.Register<ISaveManager>(this);
-        }
 
-        
         public async UniTask SaveAsync<T>(T data)
         {
             if (_saveDataSource == null)
             {
-                DebugUtil.LogWarning("SAVE : data source not found", "");
+                Debug.LogWarning("SAVE : data source not found");
                 return;
             }
 
@@ -33,7 +28,7 @@ namespace LLib
             try
             {
                 await _saveDataSource.WriteAsync(data);
-                DebugUtil.Log("SAVE", $"SUCCESS ({type.Name})");
+                Debug.Log($"SAVE SUCCESS ({type.Name})");
             }
             catch (Exception e)
             {
@@ -41,20 +36,20 @@ namespace LLib
                 throw;
             }
         }
-        
+
         public async UniTask<T> LoadAsync<T>()
         {
             if (_saveDataSource == null)
             {
-                DebugUtil.LogWarning("data source not found", "");
+                Debug.LogWarning("data source not found");
                 return default;
             }
-            
+
             if (_saveDataDict.TryGetValue(typeof(T), out var cached))
                 return (T)cached;
-            
+
             var type = typeof(T);
-            
+
             try
             {
                 var result = await _saveDataSource.ReadAsync<T>();
@@ -62,11 +57,11 @@ namespace LLib
                 if (!EqualityComparer<T>.Default.Equals(result, default))
                 {
                     _saveDataDict[type] = result;
-                    DebugUtil.Log("LOAD", $"SUCCESS ({type.Name})");
+                    Debug.Log($"LOAD SUCCESS ({type.Name})");
                 }
                 else
                 {
-                    DebugUtil.LogWarning("LOAD : save data not found", type.Name);
+                    Debug.LogWarning($"LOAD : save data not found ({type.Name})");
                 }
 
                 return result;
@@ -79,5 +74,3 @@ namespace LLib
         }
     }
 }
-
-

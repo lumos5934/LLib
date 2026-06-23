@@ -19,10 +19,7 @@ namespace LLib
 
         protected virtual void OnDestroy()
         {
-            if (Instance == this)
-            {
-                Instance = null;
-            }
+            if (Instance == this) Instance = null;
         }
     }
 }

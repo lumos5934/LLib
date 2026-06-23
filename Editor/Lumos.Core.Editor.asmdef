@@ -1,20 +1,20 @@
 {
-    "name": "LumosLib.Editor",
-    "rootNamespace": "",
-    "references": [
-        "LumosLib.Runtime",
-        "Unity.RenderPipelines.Universal.Runtime",
-        "TriInspector"
-    ],
-    "includePlatforms": [
-        "Editor"
-    ],
-    "excludePlatforms": [],
-    "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
-    "autoReferenced": true,
-    "defineConstraints": [],
-    "versionDefines": [],
-    "noEngineReferences": false
+  "name": "LumosLib.Editor",
+  "rootNamespace": "",
+  "references": [
+    "LumosLib.Runtime",
+    "Unity.RenderPipelines.Universal.Runtime",
+    "TriInspector"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
 }

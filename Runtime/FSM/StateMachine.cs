@@ -6,40 +6,39 @@ namespace LLib
 {
     public class StateMachine
     {
-        private Dictionary<Type, IState> _stateDict = new();
-        private IState _curState;
-        
-        public IState CurState => _curState;
+        private readonly Dictionary<Type, IState> _stateDict = new();
+
+        public IState CurState { get; private set; }
+
         public event UnityAction<IState> OnExit;
         public event UnityAction<IState> OnEnter;
-        
+
         public void Register(IState state)
         {
             _stateDict[state.GetType()] = state;
         }
-        
+
         public void Update()
         {
-            _curState?.Update();
+            CurState?.Update();
         }
 
         public void ChangeState<T>() where T : IState
         {
             if (!_stateDict.TryGetValue(typeof(T), out var newState) ||
-                _curState == newState) return;
+                CurState == newState) return;
 
-            var prevState = _curState;
+            var prevState = CurState;
 
             if (prevState != null)
             {
                 prevState.Exit();
                 OnExit?.Invoke(prevState);
             }
-          
-            _curState = newState;
-            _curState.Enter();
-            OnEnter?.Invoke(_curState);
+
+            CurState = newState;
+            CurState.Enter();
+            OnEnter?.Invoke(CurState);
         }
-        
     }
 }

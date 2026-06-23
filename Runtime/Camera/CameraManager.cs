@@ -2,42 +2,32 @@ using System.Collections.Generic;
 using Unity.Cinemachine;
 using UnityEngine;
 
-
 namespace LLib
 {
-    public class CameraManager : MonoBehaviour
+    public class CameraManager : SingletonGlobal<CameraManager>
     {
         private readonly Dictionary<string, CameraController> _controllersByKey = new();
+        private CameraController _activeController;
 
         private int _curPriority;
         private Camera _main;
-        private CameraController _activeController;
 
         public Camera Main
         {
             get
             {
-                if (_main == null)
-                {
-                    _main = Camera.main;
-                }
-                
+                if (_main == null) _main = Camera.main;
+
                 return _main;
             }
         }
 
-        
-        private void Awake()
+
+        protected override void Awake()
         {
-            Services.Register(this);
+            base.Awake();
             
             CinemachineCore.CameraActivatedEvent.AddListener(OnCameraActivated);
-        }
-
-
-        private void OnDestroy()
-        {
-            CinemachineCore.CameraActivatedEvent.RemoveListener(OnCameraActivated);
         }
 
 
@@ -47,20 +37,25 @@ namespace LLib
         }
 
 
+        protected override void OnDestroy()
+        {
+            base.OnDestroy();
+            
+            CinemachineCore.CameraActivatedEvent.RemoveListener(OnCameraActivated);
+        }
+
+
         internal void Add(string key, CameraController controller)
         {
             if (_controllersByKey.TryAdd(key, controller))
             {
                 var priority = controller.Camera.Priority;
-                
-                if (priority > _curPriority)
-                {
-                    _curPriority = priority;
-                }
+
+                if (priority > _curPriority) _curPriority = priority;
             }
         }
 
-        
+
         internal void Remove(string key)
         {
             _controllersByKey.Remove(key);
@@ -69,23 +64,23 @@ namespace LLib
 
         public CameraController GetCameraController(string key)
         {
-            return  _controllersByKey.GetValueOrDefault(key);
+            return _controllersByKey.GetValueOrDefault(key);
         }
-        
-        
+
+
         public CameraController Switch(string key)
         {
             if (_controllersByKey.TryGetValue(key, out var controller))
             {
-                controller.Camera.Priority =  ++_curPriority;
-                
+                controller.Camera.Priority = ++_curPriority;
+
                 return controller;
             }
 
             return null;
         }
-        
-        
+
+
         private void OnCameraActivated(ICinemachineCamera.ActivationEventParams eventParams)
         {
             if (eventParams.Origin is MonoBehaviour oldMono)
@@ -111,4 +106,3 @@ namespace LLib
         }
     }
 }
-
